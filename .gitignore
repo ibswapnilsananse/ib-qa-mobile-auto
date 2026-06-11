@@ -1,0 +1,7 @@
+node_modules/
+dist/
+allure-results/
+allure-report/
+report/
+*.log
+.env.local

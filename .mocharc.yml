@@ -1,0 +1,5 @@
+require:
+  - ts-node/register
+spec: "src/testsuite/**/*.test.ts"
+timeout: 120000
+reporter: spec

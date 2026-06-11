@@ -1,0 +1,46 @@
+{
+  "name": "hopper-client-demo-ts",
+  "version": "1.0.0",
+  "description": "Hopper mobile app automation framework – TypeScript + Appium + Mocha",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint 'src/**/*.ts' '*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' '*.ts' --fix",
+    "test": "mocha --require ts-node/register --timeout 120000 src/testsuite/**/*.test.ts",
+    "test:single": "mocha --require ts-node/register --timeout 120000 --grep",
+    "test:allure": "mocha --require ts-node/register --timeout 120000 --reporter mocha-allure-reporter src/testsuite/**/*.test.ts",
+    "test:report": "mocha --require ts-node/register --reporter mochawesome src/testsuite/**/*.test.ts",
+    "allure:serve": "allure serve allure-results"
+  },
+  "keywords": [
+    "appium",
+    "mocha",
+    "typescript",
+    "mobile-automation",
+    "android"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "eslint": "^8.57.0",
+    "mocha": "^10.7.0",
+    "mochawesome": "^7.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "allure-js-commons": "^2.15.1",
+    "allure-mocha": "^2.15.1",
+    "appium-uiautomator2-driver": "^3.8.0",
+    "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
+    "log4js": "^6.9.1",
+    "webdriverio": "^8.39.1",
+    "winston": "^3.13.1"
+  }
+}
