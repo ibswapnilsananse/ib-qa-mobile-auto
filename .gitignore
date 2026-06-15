@@ -3,5 +3,16 @@ dist/
 allure-results/
 allure-report/
 report/
+mochawesome-report/
+PageSource/
+whereIsMyTrian/
+app/
 *.log
+.env
 .env.local
+*.env
+/tmp/
+.DS_Store
+fix_promt
+xray-report.json
+xray-execution-info.json

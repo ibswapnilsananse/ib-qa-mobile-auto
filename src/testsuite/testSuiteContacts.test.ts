@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Browser } from "webdriverio";
-import { createDriver, quitDriver, stopAppiumServer } from "../helpers/appiumDriver";
+import { createDriver, stopAppiumServer } from "../helpers/appiumDriver";
 import { ContactsHelper } from "../helpers/ContactsHelper";
 import { testData } from "../../TestData/testData";
 import logger from "../helpers/loggerUtils";
@@ -11,41 +11,41 @@ describe("Contacts App Test Suite", function () {
   let driver: Browser;
   let contactsHelper: ContactsHelper;
 
-  afterEach(async function () {
-    await quitDriver(driver);
-  });
+  // afterEach(async function () {
+  //   await quitDriver(driver);
+  // });
 
   after(async function () {
     await stopAppiumServer();
   });
 
-  it("Test 01: Create Single Contact", async function () {
+  it("Test 01: Create Single Contact [MYY-30]", async function () {
     logger.info("Starting create single contact test");
     driver = await createDriver(false);
     contactsHelper = new ContactsHelper(driver);
 
-    await contactsHelper.createContact(testData.contactDetails[0]);
+    await contactsHelper.createContactViaKeypad(testData.contactDetails[0]);
     const result = await contactsHelper.verifyContactCreated(testData.contactDetails[0]);
     expect(result).to.be.true;
   });
 
-  it("Test 02: Create Contact and Verify", async function () {
+  it("Test 02: Create Contact and Verify [MYY-31]", async function () {
     logger.info("Starting create and verify contact test");
     driver = await createDriver();
     contactsHelper = new ContactsHelper(driver);
 
-    await contactsHelper.createContact(testData.contactDetails[1]);
+    await contactsHelper.createContactViaKeypad(testData.contactDetails[1]);
     const result = await contactsHelper.verifyContactCreated(testData.contactDetails[1]);
     expect(result).to.be.true;
   });
 
-  it("Test 03: Search Contact", async function () {
+  it("Test 03: Search Contact [MYY-32]", async function () {
     logger.info("Starting search contact test");
     driver = await createDriver();
     contactsHelper = new ContactsHelper(driver);
 
     // First create a contact
-    await contactsHelper.createContact(testData.contactDetails[0]);
+    await contactsHelper.createContactViaKeypad(testData.contactDetails[0]);
     await driver.pause(1000);
 
     // Then search for it
@@ -54,7 +54,7 @@ describe("Contacts App Test Suite", function () {
     expect(result).to.be.true;
   });
 
-  it("Test 04: Open Contact", async function () {
+  it("Test 04: Open Contact [MYY-33]", async function () {
     logger.info("Starting open contact test");
     driver = await createDriver();
     contactsHelper = new ContactsHelper(driver);
@@ -69,7 +69,7 @@ describe("Contacts App Test Suite", function () {
     expect(result).to.be.true;
   });
 
-  it("Test 05: Create Multiple Contacts", async function () {
+  it("Test 05: Create Multiple Contacts [MYY-34]", async function () {
     logger.info("Starting create multiple contacts test");
     driver = await createDriver();
     contactsHelper = new ContactsHelper(driver);
@@ -78,7 +78,7 @@ describe("Contacts App Test Suite", function () {
     expect(result).to.be.true;
   });
 
-  it("Test 06: Verify Multiple Contacts", async function () {
+  it("Test 06: Verify Multiple Contacts [MYY-35]", async function () {
     logger.info("Starting verify multiple contacts test");
     driver = await createDriver();
     contactsHelper = new ContactsHelper(driver);

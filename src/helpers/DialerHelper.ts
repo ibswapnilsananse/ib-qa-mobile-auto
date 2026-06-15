@@ -195,4 +195,51 @@ export class DialerHelper {
       return false;
     }
   }
+
+  async testContactSavingFlow(phoneNumber: string, contactName: string): Promise<boolean> {
+    logger.info("Starting contact saving flow test");
+
+    try {
+      // Navigate to Keypad
+      await this.dialerPage.clickKeypadTab();
+      await this.driver.pause(500);
+
+      // Verify keypad is displayed
+      const keypadOk = await this.verifyKeypadPage();
+      if (!keypadOk) return false;
+
+      // Type phone number
+      await this.dialerPage.enterPhoneNumber(phoneNumber);
+      await this.driver.pause(300);
+      logger.info("✓ Phone number entered successfully");
+
+      // Click 'Create new contact'
+      await this.dialerPage.clickCreateNewContact();
+      await this.driver.pause(1000);
+      logger.info("✓ Clicked Create new contact");
+
+      // Verify contact save page is displayed
+      const contactPageOk = await this.dialerPage.isContactSavePageDisplayed();
+      if (!contactPageOk) {
+        logger.error("✗ Contact save page not displayed");
+        return false;
+      }
+      logger.info("✓ Contact save page displayed");
+
+      // Enter contact name
+      await this.dialerPage.enterContactName(contactName);
+      await this.driver.pause(300);
+      logger.info("✓ Contact name entered");
+
+      // Click save button
+      await this.dialerPage.clickSaveContact();
+      await this.driver.pause(1000);
+      logger.info("✓ Contact saved successfully");
+
+      return true;
+    } catch (e) {
+      logger.error(`✗ Contact saving flow failed: ${e}`);
+      return false;
+    }
+  }
 }

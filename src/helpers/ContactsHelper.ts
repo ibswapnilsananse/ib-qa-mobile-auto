@@ -1,5 +1,6 @@
 import { Browser } from "webdriverio";
 import { ContactsPage } from "../pages/ContactsPage";
+import { DialerPage } from "../pages/DialerPage";
 import logger from "./loggerUtils";
 
 export interface ContactDetails {
@@ -12,10 +13,12 @@ export interface ContactDetails {
 export class ContactsHelper {
   private driver: Browser;
   private contactsPage: ContactsPage;
+  private dialerPage: DialerPage;
 
   constructor(driver: Browser) {
     this.driver = driver;
     this.contactsPage = new ContactsPage(driver);
+    this.dialerPage = new DialerPage(driver);
   }
 
   async navigateToViewContacts(): Promise<void> {
@@ -55,6 +58,54 @@ export class ContactsHelper {
     await this.driver.pause(800);
 
     logger.info(`Contact created successfully: ${contact.firstName} ${contact.lastName}`);
+  }
+
+  async createContactViaKeypad(contact: ContactDetails): Promise<void> {
+    logger.info(`Creating contact via keypad: ${contact.firstName} ${contact.lastName}`);
+
+    // Navigate to Keypad tab
+    logger.info("Navigating to keypad");
+    await this.dialerPage.clickKeypadTab();
+    await this.driver.pause(500);
+
+    // Enter phone number
+    if (contact.phone) {
+      logger.info(`Entering phone number: ${contact.phone}`);
+      await this.dialerPage.enterPhoneNumber(contact.phone);
+      await this.driver.pause(500);
+    } else {
+      logger.error("Phone number is required for keypad-based contact creation");
+      throw new Error("Phone number is required for keypad-based contact creation");
+    }
+
+    // Click 'Create new contact'
+    logger.info("Clicking 'Create new contact'");
+    await this.dialerPage.clickCreateNewContact();
+    await this.driver.pause(1000);
+
+    // Verify contact save page is displayed
+    const contactPageDisplayed = await this.dialerPage.isContactSavePageDisplayed();
+    if (!contactPageDisplayed) {
+      logger.error("Contact save page not displayed");
+      throw new Error("Contact save page not displayed");
+    }
+    logger.info("Contact save page displayed");
+
+    // Enter contact name (separate first and last name fields)
+    logger.info(`Entering first name: ${contact.firstName}`);
+    await this.dialerPage.enterContactFirstName(contact.firstName);
+    await this.driver.pause(300);
+
+    logger.info(`Entering last name: ${contact.lastName}`);
+    await this.dialerPage.enterContactLastName(contact.lastName);
+    await this.driver.pause(300);
+
+    // Click save button
+    logger.info("Clicking save button");
+    await this.dialerPage.clickSaveContact();
+    await this.driver.pause(1000);
+
+    logger.info(`Contact created successfully via keypad: ${contact.firstName} ${contact.lastName}`);
   }
 
   async verifyContactCreated(contact: ContactDetails): Promise<boolean> {

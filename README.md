@@ -94,6 +94,62 @@ npm run test:allure
 npx allure serve allure-results
 ```
 
+## Xray Integration
+
+This framework integrates with Xray Cloud to upload test results to Jira.
+
+### Configuration
+
+Set the following environment variables in `.env`:
+
+```bash
+# Xray Report Configuration
+XRAY_REPORT_FILE=./xray-report.json
+XRAY_CLIENT_ID=your-client-id
+XRAY_CLIENT_SECRET=your-client-secret
+XRAY_BASE_URL=https://eu.xray.cloud.getxray.app
+
+# Project Configuration
+JIRA_PROJECT_KEY=MYY
+JIRA_TEST_EXECUTION_KEY=MYY-59  # Optional: Update existing execution instead of creating new one
+```
+
+**Note:** For EU Xray Cloud instances, use `https://eu.xray.cloud.getxray.app`. For global instances, use `https://xray.cloud.getxray.app`.
+
+### Adding Xray Test IDs
+
+Add Xray test IDs to your test cases using the format `[MYY-XX]` in the test title:
+
+```typescript
+it("Test 01: Create Single Contact [MYY-30]", async function () {
+  // test code
+});
+```
+
+### Workflow
+
+1. **Run tests** to generate the Mochawesome report:
+   ```bash
+   npm test
+   ```
+
+2. **Generate Xray report** from Mochawesome results:
+   ```bash
+   npm run generate-xray-report
+   ```
+
+3. **Upload results to Xray**:
+   ```bash
+   npm run upload-xray-results
+   ```
+
+### Important Implementation Details
+
+- **Authentication:** Uses OAuth2 client credentials flow with `Accept: text/plain` header and token quote stripping for EU region compatibility
+- **Status Format:** Uses `PASSED`/`FAILED` (not `PASS`/`FAIL`) for Xray Cloud API compatibility
+- **JSON Format:** Uses Xray Cloud JSON format with `info` section containing `project` field
+- **Test Keys:** Must match existing test keys in your Xray project (e.g., MYY-30 to MYY-50)
+
 ## Architecture Notes
 
 | Python (original)         | TypeScript (this framework)            |

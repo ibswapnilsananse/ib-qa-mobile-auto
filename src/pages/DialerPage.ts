@@ -73,6 +73,28 @@ export class DialerPage {
     '//android.widget.TextView[@text="Send a message"]',
   ];
 
+  // Contact saving page locators (from Add-to-contactpage)
+  static readonly LOC_CONTACT_FIRST_NAME_FIELD: Locator = [
+    "xpath",
+    '//android.widget.EditText[@hint="First name"]',
+  ];
+  static readonly LOC_CONTACT_LAST_NAME_FIELD: Locator = [
+    "xpath",
+    '//android.widget.EditText[@hint="Last name"]',
+  ];
+  static readonly LOC_CONTACT_PHONE_FIELD: Locator = [
+    "xpath",
+    '//android.widget.EditText[contains(@text, "(") and contains(@text, ")")]',
+  ];
+  static readonly LOC_SAVE_CONTACT_BTN: Locator = [
+    "xpath",
+    '//android.widget.TextView[@text="Save"]',
+  ];
+  static readonly LOC_ADD_TO_CONTACTS_TITLE: Locator = [
+    "xpath",
+    '//android.widget.TextView[@text="Add to contacts"]',
+  ];
+
   constructor(driver: Browser) {
     this.driver = driver;
     this.base = new Base(driver);
@@ -127,14 +149,9 @@ export class DialerPage {
   }
 
   async enterPhoneNumber(phoneNumber: string): Promise<void> {
-    const element = await this.base.element(DialerPage.LOC_DIALPAD_INPUT);
-    await element.click();
-    for (const digit of phoneNumber) {
-      if (digit === "-" || digit === " " || digit === "(" || digit === ")") {
-        continue; // Skip formatting characters
-      }
-      await this.driver.pause(50);
-    }
+    // Remove formatting characters and type the actual digits
+    const cleanNumber = phoneNumber.replace(/[-\s()]/g, '');
+    await this.base.sendText(DialerPage.LOC_DIALPAD_INPUT, cleanNumber);
   }
 
   async clickCreateNewContact(): Promise<void> {
@@ -168,6 +185,39 @@ export class DialerPage {
     ];
     try {
       const element = await this.base.element(locator, 5000);
+      return await element.isDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
+  async enterContactFirstName(firstName: string): Promise<void> {
+    await this.base.sendText(DialerPage.LOC_CONTACT_FIRST_NAME_FIELD, firstName);
+  }
+
+  async enterContactLastName(lastName: string): Promise<void> {
+    await this.base.sendText(DialerPage.LOC_CONTACT_LAST_NAME_FIELD, lastName);
+  }
+
+  async enterContactName(name: string): Promise<void> {
+    // For backward compatibility, split name into first and last
+    const parts = name.trim().split(' ');
+    if (parts.length > 0) {
+      await this.enterContactFirstName(parts[0]);
+    }
+    if (parts.length > 1) {
+      await this.enterContactLastName(parts.slice(1).join(' '));
+    }
+  }
+
+  async clickSaveContact(): Promise<void> {
+    const element = await this.base.element(DialerPage.LOC_SAVE_CONTACT_BTN);
+    await element.click();
+  }
+
+  async isContactSavePageDisplayed(): Promise<boolean> {
+    try {
+      const element = await this.base.element(DialerPage.LOC_ADD_TO_CONTACTS_TITLE, 5000);
       return await element.isDisplayed();
     } catch {
       return false;

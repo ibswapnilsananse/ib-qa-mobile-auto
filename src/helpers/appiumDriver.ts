@@ -5,6 +5,30 @@ import dotenv from "dotenv";
 import path from "path";
 import http from "http";
 import logger from "./loggerUtils";
+import winston from "winston";
+import fs from "fs";
+
+// ── Appium-only logger (separate file, never goes to console or reports) ──
+const appiumLogDir = path.resolve(__dirname, "../../report/appium_server_logs");
+if (!fs.existsSync(appiumLogDir)) {
+  fs.mkdirSync(appiumLogDir, { recursive: true });
+}
+const appiumTimestamp =
+  new Date().toISOString().replace(/[:.]/g, "-").split("T")[0] +
+  "_" +
+  new Date().toTimeString().split(" ")[0].replace(/:/g, "-");
+
+const appiumLogger = winston.createLogger({
+  level: "debug",
+  format: winston.format.printf(({ message }) => message as string),
+  transports: [
+    new winston.transports.File({
+      filename: path.join(appiumLogDir, `appium_server_${appiumTimestamp}.log`),
+      options: { flags: "w" },
+    }),
+  ],
+  // NO Console transport — appium logs never appear in stdout
+});
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -31,10 +55,8 @@ function readEnvConfig(): AppiumConfig {
     appActivity:
       process.env.APP_ACTIVITY ||
       "com.hopper.mountainview.activities.LaunchPage",
-    apkFilePath:
-      process.env.APK_FILE_PATH ||
-      path.resolve(__dirname, "../../app/hopper.apk"),
-    fullReset: (process.env.FULL_RESET || "true").toLowerCase() === "true",
+    apkFilePath: process.env.APK_FILE_PATH ?? "",
+    fullReset: (process.env.FULL_RESET ?? "false").toLowerCase() === "true",
     autoLaunchAppiumServer:
       (process.env.AUTO_LAUNCH_APPIUM_SERVER || "true").toLowerCase() ===
       "true",
@@ -108,10 +130,10 @@ export async function startAppiumServer(): Promise<string> {
     });
 
     appiumProcess.stdout?.on("data", (data) =>
-      logger.debug(`Appium stdout: ${data}`)
+      appiumLogger.debug(data.toString().trim())
     );
     appiumProcess.stderr?.on("data", (data) =>
-      logger.debug(`Appium stderr: ${data}`)
+      appiumLogger.debug(data.toString().trim())
     );
 
     // Wait for Appium to be ready
@@ -152,13 +174,14 @@ export async function createDriver(appReset = false): Promise<Browser> {
   const config = readEnvConfig();
   const serverUrl = await startAppiumServer();
 
+  const hasApk = config.apkFilePath && config.apkFilePath.trim() !== "";
+
   const capabilities: Record<string, unknown> = {
     platformName: config.platformName,
     "appium:platformVersion": config.platformVersion,
     "appium:deviceName": config.deviceName,
     "appium:udid": config.udid,
     "appium:automationName": "UiAutomator2",
-    "appium:app": path.resolve(__dirname, "../..", config.apkFilePath),
     "appium:appPackage": config.appPackage,
     "appium:appActivity": config.appActivity,
     "appium:adbExecTimeout": 120000,
@@ -167,12 +190,20 @@ export async function createDriver(appReset = false): Promise<Browser> {
     "appium:forceAppLaunch": true,
     "appium:autoGrantPermissions": true,
     "appium:enforceXPath1": true,
-    "appium:dontStopAppOnReset": true,
+    "appium:dontStopAppOnReset": !config.fullReset,
     "appium:skipDeviceInitialization": true,
   };
 
-  if (appReset) {
-    capabilities["appium:fullReset"] = config.fullReset;
+  if (hasApk) {
+    capabilities["appium:app"] = path.resolve(__dirname, "../..", config.apkFilePath);
+    logger.info(`APK provided — launching from file: ${config.apkFilePath}`);
+  } else {
+    logger.info(`No APK path — launching via appPackage: ${config.appPackage} / appActivity: ${config.appActivity}`);
+  }
+
+  if (config.fullReset || appReset) {
+    capabilities["appium:fullReset"] = true;
+    logger.info("Full reset enabled");
   }
 
   logger.info(`Connecting to Appium at ${serverUrl}`);
@@ -183,6 +214,7 @@ export async function createDriver(appReset = false): Promise<Browser> {
     capabilities,
     logLevel: "warn",
   });
+  (global as any).currentDriver = driver;
 
   // Note: setImplicitTimeout is not yet implemented in AndroidUiautomator2Driver
   // Use explicit waits (waitForDisplayed, waitForEnabled) in your tests instead
@@ -197,6 +229,8 @@ export async function quitDriver(driver: Browser | null): Promise<void> {
       logger.info("Appium session closed successfully");
     } catch (e) {
       logger.error(`Error closing Appium session: ${e}`);
+    } finally {
+      (global as any).currentDriver = null;
     }
   }
 }
