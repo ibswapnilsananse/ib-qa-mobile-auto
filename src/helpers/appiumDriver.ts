@@ -32,7 +32,10 @@ const appiumLogger = winston.createLogger({
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
+export type TestProvider = "local" | "headspin" | "browserstack";
+
 export interface AppiumConfig {
+  provider: TestProvider;
   platformName: string;
   platformVersion: string;
   deviceName: string;
@@ -43,10 +46,19 @@ export interface AppiumConfig {
   fullReset: boolean;
   autoLaunchAppiumServer: boolean;
   implicitlyWait: number;
+  // HeadSpin
+  headspinApiToken?: string;
+  headspinHost?: string;
+  // BrowserStack
+  browserstackUser?: string;
+  browserstackKey?: string;
+  browserstackAppUrl?: string;
 }
 
 function readEnvConfig(): AppiumConfig {
+  const provider = (process.env.TEST_PROVIDER || "local").toLowerCase() as TestProvider;
   return {
+    provider,
     platformName: process.env.PLATFORM_NAME || "android",
     platformVersion: process.env.PLATFORM_VERSION || "12",
     deviceName: process.env.DEVICE_NAME || "Nexus 5",
@@ -58,9 +70,13 @@ function readEnvConfig(): AppiumConfig {
     apkFilePath: process.env.APK_FILE_PATH ?? "",
     fullReset: (process.env.FULL_RESET ?? "false").toLowerCase() === "true",
     autoLaunchAppiumServer:
-      (process.env.AUTO_LAUNCH_APPIUM_SERVER || "true").toLowerCase() ===
-      "true",
+      (process.env.AUTO_LAUNCH_APPIUM_SERVER || "true").toLowerCase() === "true",
     implicitlyWait: parseInt(process.env.IMPLICITLY_WAIT || "2000", 10),
+    headspinApiToken: process.env.HEADSPIN_API_TOKEN,
+    headspinHost: process.env.HEADSPIN_HOST || "appium-dev.headspin.io",
+    browserstackUser: process.env.BROWSERSTACK_USER,
+    browserstackKey: process.env.BROWSERSTACK_KEY,
+    browserstackAppUrl: process.env.BROWSERSTACK_APP_URL,
   };
 }
 
@@ -170,54 +186,120 @@ export async function stopAppiumServer(): Promise<void> {
   }
 }
 
-export async function createDriver(appReset = false): Promise<Browser> {
-  const config = readEnvConfig();
-  const serverUrl = await startAppiumServer();
-
+function buildBaseAndroidCapabilities(config: AppiumConfig, appReset: boolean): Record<string, unknown> {
   const hasApk = config.apkFilePath && config.apkFilePath.trim() !== "";
-
-  const capabilities: Record<string, unknown> = {
+  const caps: Record<string, unknown> = {
     platformName: config.platformName,
     "appium:platformVersion": config.platformVersion,
     "appium:deviceName": config.deviceName,
-    "appium:udid": config.udid,
     "appium:automationName": "UiAutomator2",
     "appium:appPackage": config.appPackage,
     "appium:appActivity": config.appActivity,
-    "appium:adbExecTimeout": 120000,
-    "appium:uiautomator2ServerInstallTimeout": 180000,
     "appium:newCommandTimeout": 300000,
     "appium:forceAppLaunch": true,
     "appium:autoGrantPermissions": true,
     "appium:enforceXPath1": true,
-    "appium:dontStopAppOnReset": !config.fullReset,
-    "appium:skipDeviceInitialization": true,
+    "appium:dontStopAppOnReset": !(config.fullReset || appReset),
   };
-
   if (hasApk) {
-    capabilities["appium:app"] = path.resolve(__dirname, "../..", config.apkFilePath);
+    caps["appium:app"] = path.resolve(__dirname, "../..", config.apkFilePath);
     logger.info(`APK provided — launching from file: ${config.apkFilePath}`);
   } else {
     logger.info(`No APK path — launching via appPackage: ${config.appPackage} / appActivity: ${config.appActivity}`);
   }
-
   if (config.fullReset || appReset) {
-    capabilities["appium:fullReset"] = true;
+    caps["appium:fullReset"] = true;
     logger.info("Full reset enabled");
   }
+  return caps;
+}
 
+async function createLocalDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
+  const serverUrl = await startAppiumServer();
+  const capabilities = {
+    ...buildBaseAndroidCapabilities(config, appReset),
+    "appium:udid": config.udid,
+    "appium:adbExecTimeout": 120000,
+    "appium:uiautomator2ServerInstallTimeout": 180000,
+    "appium:skipDeviceInitialization": true,
+  };
   logger.info(`Connecting to Appium at ${serverUrl}`);
-  const driver = await remote({
+  return remote({
     path: serverUrl.includes("/wd/hub") ? "/wd/hub" : "/",
     hostname: "localhost",
     port: assignedPort ?? 4723,
     capabilities,
     logLevel: "warn",
   });
-  (global as any).currentDriver = driver;
+}
 
-  // Note: setImplicitTimeout is not yet implemented in AndroidUiautomator2Driver
-  // Use explicit waits (waitForDisplayed, waitForEnabled) in your tests instead
+async function createHeadSpinDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
+  if (!config.headspinApiToken) throw new Error("HEADSPIN_API_TOKEN is required for HeadSpin provider");
+  const capabilities = {
+    ...buildBaseAndroidCapabilities(config, appReset),
+    "appium:udid": config.udid,
+    "headspin:selector": { udid: config.udid },
+  };
+  logger.info(`Connecting to HeadSpin at ${config.headspinHost}`);
+  return remote({
+    protocol: "https",
+    hostname: config.headspinHost!,
+    port: 443,
+    path: `/${config.headspinApiToken}/v0/wd/hub`,
+    capabilities,
+    logLevel: "warn",
+  });
+}
+
+async function createBrowserStackDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
+  if (!config.browserstackUser || !config.browserstackKey) {
+    throw new Error("BROWSERSTACK_USER and BROWSERSTACK_KEY are required for BrowserStack provider");
+  }
+  const caps: Record<string, unknown> = {
+    ...buildBaseAndroidCapabilities(config, appReset),
+    "bstack:options": {
+      userName: config.browserstackUser,
+      accessKey: config.browserstackKey,
+      deviceName: config.deviceName,
+      osVersion: config.platformVersion,
+      projectName: "IB-QA-Mobile-Auto",
+      buildName: `CI-${new Date().toISOString().split("T")[0]}`,
+      sessionName: config.appPackage,
+      appiumVersion: "2.0.0",
+    },
+  };
+  if (config.browserstackAppUrl) {
+    caps["appium:app"] = config.browserstackAppUrl;
+    logger.info(`BrowserStack app URL: ${config.browserstackAppUrl}`);
+  }
+  logger.info(`Connecting to BrowserStack Hub`);
+  return remote({
+    protocol: "https",
+    hostname: "hub.browserstack.com",
+    port: 443,
+    path: "/wd/hub",
+    capabilities: caps,
+    logLevel: "warn",
+  });
+}
+
+export async function createDriver(appReset = false): Promise<Browser> {
+  const config = readEnvConfig();
+  logger.info(`Test provider: ${config.provider}`);
+
+  let driver: Browser;
+  switch (config.provider) {
+    case "headspin":
+      driver = await createHeadSpinDriver(config, appReset);
+      break;
+    case "browserstack":
+      driver = await createBrowserStackDriver(config, appReset);
+      break;
+    default:
+      driver = await createLocalDriver(config, appReset);
+  }
+
+  (global as any).currentDriver = driver;
   logger.info("Appium driver created successfully");
   return driver;
 }

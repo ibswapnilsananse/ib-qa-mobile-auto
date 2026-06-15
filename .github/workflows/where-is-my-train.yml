@@ -1,10 +1,6 @@
 name: Where Is My Train - Android Tests
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
@@ -62,6 +58,7 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-api34-${{ runner.os }}-v1
+          restore-keys: avd-api34-${{ runner.os }}
 
       - name: Create Android AVD
         if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -80,8 +77,9 @@ jobs:
           arch: x86_64
           profile: pixel_6
           avd-name: Pixel_6
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
+          force-avd-creation: false
           script: |
             npm install -g appium
             appium driver install uiautomator2

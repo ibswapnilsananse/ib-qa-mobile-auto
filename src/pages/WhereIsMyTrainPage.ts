@@ -175,7 +175,7 @@ export class WhereIsMyTrainPage {
         const rect = await el.getLocation();
         const size = await el.getSize();
         tapX = rect.x + Math.round(size.width / 2);
-        tapY = rect.y + size.height + 80;
+        tapY = rect.y + size.height + 100;
       } catch {
         // use defaults
       }

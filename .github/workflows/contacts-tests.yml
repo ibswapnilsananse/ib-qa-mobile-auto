@@ -6,6 +6,45 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
+    inputs:
+      test_provider:
+        description: "Test provider: local | headspin | browserstack"
+        required: false
+        default: local
+        type: choice
+        options: [local, headspin, browserstack]
+      platform_version:
+        description: Android platform version
+        required: false
+        default: "12"
+      device_name:
+        description: Device name / AVD profile
+        required: false
+        default: Pixel_6
+      udid:
+        description: Device UDID (emulator-5554 for local, device serial for HeadSpin)
+        required: false
+        default: emulator-5554
+      app_package:
+        description: App package name
+        required: false
+        default: com.google.android.dialer
+      app_activity:
+        description: App launch activity
+        required: false
+        default: com.google.android.dialer.extensions.GoogleDialtactsActivity
+      full_reset:
+        description: Full reset before session
+        required: false
+        default: "false"
+      implicitly_wait:
+        description: Implicit wait in ms
+        required: false
+        default: "2000"
+      jira_project_key:
+        description: Jira project key for Xray reporting
+        required: false
+        default: MYY
 
 jobs:
   android-tests:
@@ -13,17 +52,23 @@ jobs:
     timeout-minutes: 60
 
     env:
+      TEST_PROVIDER: ${{ inputs.test_provider || 'local' }}
       PLATFORM_NAME: android
-      PLATFORM_VERSION: "12"
-      DEVICE_NAME: Pixel_6
-      UDID: emulator-5554
-      APP_PACKAGE: com.google.android.dialer
-      APP_ACTIVITY: com.google.android.dialer.extensions.GoogleDialtactsActivity
+      PLATFORM_VERSION: ${{ inputs.platform_version || '12' }}
+      DEVICE_NAME: ${{ inputs.device_name || 'Pixel_6' }}
+      UDID: ${{ inputs.udid || 'emulator-5554' }}
+      APP_PACKAGE: ${{ inputs.app_package || 'com.google.android.dialer' }}
+      APP_ACTIVITY: ${{ inputs.app_activity || 'com.google.android.dialer.extensions.GoogleDialtactsActivity' }}
       APK_FILE_PATH: ""
-      FULL_RESET: "false"
-      AUTO_LAUNCH_APPIUM_SERVER: "true"
-      IMPLICITLY_WAIT: "2000"
-      JIRA_PROJECT_KEY: MYY
+      FULL_RESET: ${{ inputs.full_reset || 'false' }}
+      AUTO_LAUNCH_APPIUM_SERVER: ${{ (inputs.test_provider == 'local' || inputs.test_provider == '') && 'true' || 'false' }}
+      IMPLICITLY_WAIT: ${{ inputs.implicitly_wait || '2000' }}
+      JIRA_PROJECT_KEY: ${{ inputs.jira_project_key || 'MYY' }}
+      HEADSPIN_API_TOKEN: ${{ secrets.HEADSPIN_API_TOKEN }}
+      HEADSPIN_HOST: ${{ secrets.HEADSPIN_HOST }}
+      BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
+      BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
+      BROWSERSTACK_APP_URL: ${{ secrets.BROWSERSTACK_APP_URL }}
 
     steps:
       - name: Checkout repository
@@ -45,9 +90,11 @@ jobs:
           distribution: "temurin"
 
       - name: Set up Android SDK
+        if: env.TEST_PROVIDER == 'local'
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK platform & tools
+        if: env.TEST_PROVIDER == 'local'
         run: |
           sdkmanager --install \
             "platform-tools" \
@@ -56,6 +103,7 @@ jobs:
             "emulator"
 
       - name: Cache Android AVD
+        if: env.TEST_PROVIDER == 'local'
         uses: actions/cache@v4
         id: avd-cache
         with:
@@ -63,9 +111,10 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-api34-${{ runner.os }}-v1
+          restore-keys: avd-api34-${{ runner.os }}
 
       - name: Create Android AVD
-        if: steps.avd-cache.outputs.cache-hit != 'true'
+        if: env.TEST_PROVIDER == 'local' && steps.avd-cache.outputs.cache-hit != 'true'
         run: |
           echo "no" | avdmanager create avd \
             --name Pixel_6 \
@@ -73,7 +122,8 @@ jobs:
             --device "pixel_6" \
             --force
 
-      - name: Run Contacts tests
+      - name: Run Contacts tests (local emulator)
+        if: env.TEST_PROVIDER == 'local'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -81,13 +131,18 @@ jobs:
           arch: x86_64
           profile: pixel_6
           avd-name: Pixel_6
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
+          force-avd-creation: false
           script: |
             npm install -g appium
             appium driver install uiautomator2
             adb shell input keyevent 82
             npm run test:singleWithMochaAwesome "Contacts App Test Suite"
+
+      - name: Run Contacts tests (remote provider)
+        if: env.TEST_PROVIDER != 'local'
+        run: npm run test:singleWithMochaAwesome "Contacts App Test Suite"
 
       - name: Upload Mochawesome report
         uses: actions/upload-artifact@v4
