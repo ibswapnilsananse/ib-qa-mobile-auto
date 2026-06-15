@@ -4,9 +4,9 @@
   "description": "Hopper mobile app automation framework – TypeScript + Appium + Mocha",
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint 'src/**/*.ts' '*.ts'",
-    "lint:fix": "eslint 'src/**/*.ts' '*.ts' --fix",
-    "lint:report": "eslint 'src/**/*.ts' '*.ts' --format json --output-file eslint-report.json || true",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "lint:report": "eslint 'src/**/*.ts' --format json --output-file eslint-report.json || true",
     "test": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 src/testsuite/**/*.test.ts",
     "test:single": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --grep",
     "test:multi": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter mocha-multi-reporters --reporter-options configFile=reporter-config.json --exit src/testsuite/**/*.test.ts",
