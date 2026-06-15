@@ -46,6 +46,10 @@ export interface AppiumConfig {
   fullReset: boolean;
   autoLaunchAppiumServer: boolean;
   implicitlyWait: number;
+  // iOS specific
+  automationName?: string;
+  bundleId?: string;
+  showXcodeLog?: boolean;
   // HeadSpin
   headspinApiToken?: string;
   headspinHost?: string;
@@ -70,6 +74,10 @@ function readEnvConfig(): AppiumConfig {
     autoLaunchAppiumServer:
       (process.env.AUTO_LAUNCH_APPIUM_SERVER || "true").toLowerCase() === "true",
     implicitlyWait: parseInt(process.env.IMPLICITLY_WAIT || "2000", 10),
+    // iOS specific
+    automationName: process.env.AUTOMATION_NAME || "",
+    bundleId: process.env.BUNDLE_ID || "",
+    showXcodeLog: (process.env.SHOW_XCODE_LOG || "false").toLowerCase() === "true",
     headspinApiToken: process.env.HEADSPIN_API_TOKEN,
     headspinHost: process.env.HEADSPIN_HOST || "appium-dev.headspin.io",
     browserstackUser: process.env.BROWSERSTACK_USER,
@@ -227,6 +235,34 @@ async function createLocalDriver(config: AppiumConfig, appReset: boolean): Promi
   });
 }
 
+function buildBaseIosCapabilities(config: AppiumConfig): Record<string, unknown> {
+  const caps: Record<string, unknown> = {
+    platformName: config.platformName,
+    "appium:automationName": config.automationName || "XCUITest",
+    "appium:udid": config.udid,
+    "appium:deviceName": config.deviceName,
+    "appium:platformVersion": config.platformVersion,
+    "appium:showXcodeLog": config.showXcodeLog ?? true,
+    "appium:bundleId": config.bundleId,
+    "appium:newCommandTimeout": 300000,
+  };
+  logger.info(`iOS capabilities built — bundleId: ${config.bundleId}`);
+  return caps;
+}
+
+async function createLocalIosDriver(config: AppiumConfig): Promise<Browser> {
+  const serverUrl = await startAppiumServer();
+  const capabilities = buildBaseIosCapabilities(config);
+  logger.info(`Connecting to Appium (iOS) at ${serverUrl}`);
+  return remote({
+    path: serverUrl.includes("/wd/hub") ? "/wd/hub" : "/",
+    hostname: "localhost",
+    port: assignedPort ?? 4723,
+    capabilities,
+    logLevel: "warn",
+  });
+}
+
 async function createHeadSpinDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
   if (!config.headspinApiToken)
     throw new Error("HEADSPIN_API_TOKEN is required for HeadSpin provider");
@@ -285,6 +321,8 @@ export async function createDriver(appReset = false): Promise<Browser> {
   logger.info(`Test provider: ${config.provider}`);
 
   let driver: Browser;
+  const isIos = config.platformName.toLowerCase() === "ios";
+
   switch (config.provider) {
     case "headspin":
       driver = await createHeadSpinDriver(config, appReset);
@@ -293,7 +331,9 @@ export async function createDriver(appReset = false): Promise<Browser> {
       driver = await createBrowserStackDriver(config, appReset);
       break;
     default:
-      driver = await createLocalDriver(config, appReset);
+      driver = isIos
+        ? await createLocalIosDriver(config)
+        : await createLocalDriver(config, appReset);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

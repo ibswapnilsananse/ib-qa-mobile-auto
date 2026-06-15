@@ -38,6 +38,12 @@ export class Base {
         return `~${value}`;
       case "android":
         return `android=${value}`;
+      case "-ios predicate string":
+        return `-ios predicate string:${value}`;
+      case "-ios class chain":
+        return `-ios class chain:${value}`;
+      case "class name":
+        return value;
       default:
         return value;
     }
