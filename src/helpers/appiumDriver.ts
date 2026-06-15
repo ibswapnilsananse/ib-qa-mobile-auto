@@ -63,10 +63,8 @@ function readEnvConfig(): AppiumConfig {
     platformVersion: process.env.PLATFORM_VERSION || "12",
     deviceName: process.env.DEVICE_NAME || "Nexus 5",
     udid: process.env.UDID || "emulator-5554",
-    appPackage: process.env.APP_PACKAGE || "com.hopper.mountainview.play",
-    appActivity:
-      process.env.APP_ACTIVITY ||
-      "com.hopper.mountainview.activities.LaunchPage",
+    appPackage: process.env.APP_PACKAGE || "com.example.app",
+    appActivity: process.env.APP_ACTIVITY || "com.example.app.MainActivity",
     apkFilePath: process.env.APK_FILE_PATH ?? "",
     fullReset: (process.env.FULL_RESET ?? "false").toLowerCase() === "true",
     autoLaunchAppiumServer:
@@ -109,10 +107,7 @@ async function checkAppiumServer(
             res.on("end", () => {
               try {
                 const json = JSON.parse(data);
-                resolve(
-                  res.statusCode === 200 ||
-                    json?.value?.ready === true
-                );
+                resolve(res.statusCode === 200 || json?.value?.ready === true);
               } catch {
                 resolve(res.statusCode === 200);
               }
@@ -145,12 +140,8 @@ export async function startAppiumServer(): Promise<string> {
       shell: true,
     });
 
-    appiumProcess.stdout?.on("data", (data) =>
-      appiumLogger.debug(data.toString().trim())
-    );
-    appiumProcess.stderr?.on("data", (data) =>
-      appiumLogger.debug(data.toString().trim())
-    );
+    appiumProcess.stdout?.on("data", (data) => appiumLogger.debug(data.toString().trim()));
+    appiumProcess.stderr?.on("data", (data) => appiumLogger.debug(data.toString().trim()));
 
     // Wait for Appium to be ready
     const maxRetries = 30;
@@ -168,9 +159,7 @@ export async function startAppiumServer(): Promise<string> {
     logger.info("Checking for manually started Appium server");
     const status = await checkAppiumServer(host, port);
     if (!status.running) {
-      throw new Error(
-        "Appium server is not started manually. Halting execution."
-      );
+      throw new Error("Appium server is not started manually. Halting execution.");
     }
     logger.info(`Appium server already running at ${status.url}`);
     return status.url;
@@ -186,7 +175,10 @@ export async function stopAppiumServer(): Promise<void> {
   }
 }
 
-function buildBaseAndroidCapabilities(config: AppiumConfig, appReset: boolean): Record<string, unknown> {
+function buildBaseAndroidCapabilities(
+  config: AppiumConfig,
+  appReset: boolean
+): Record<string, unknown> {
   const hasApk = config.apkFilePath && config.apkFilePath.trim() !== "";
   const caps: Record<string, unknown> = {
     platformName: config.platformName,
@@ -205,7 +197,9 @@ function buildBaseAndroidCapabilities(config: AppiumConfig, appReset: boolean): 
     caps["appium:app"] = path.resolve(__dirname, "../..", config.apkFilePath);
     logger.info(`APK provided — launching from file: ${config.apkFilePath}`);
   } else {
-    logger.info(`No APK path — launching via appPackage: ${config.appPackage} / appActivity: ${config.appActivity}`);
+    logger.info(
+      `No APK path — launching via appPackage: ${config.appPackage} / appActivity: ${config.appActivity}`
+    );
   }
   if (config.fullReset || appReset) {
     caps["appium:fullReset"] = true;
@@ -234,7 +228,8 @@ async function createLocalDriver(config: AppiumConfig, appReset: boolean): Promi
 }
 
 async function createHeadSpinDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
-  if (!config.headspinApiToken) throw new Error("HEADSPIN_API_TOKEN is required for HeadSpin provider");
+  if (!config.headspinApiToken)
+    throw new Error("HEADSPIN_API_TOKEN is required for HeadSpin provider");
   const capabilities = {
     ...buildBaseAndroidCapabilities(config, appReset),
     "appium:udid": config.udid,
@@ -253,7 +248,9 @@ async function createHeadSpinDriver(config: AppiumConfig, appReset: boolean): Pr
 
 async function createBrowserStackDriver(config: AppiumConfig, appReset: boolean): Promise<Browser> {
   if (!config.browserstackUser || !config.browserstackKey) {
-    throw new Error("BROWSERSTACK_USER and BROWSERSTACK_KEY are required for BrowserStack provider");
+    throw new Error(
+      "BROWSERSTACK_USER and BROWSERSTACK_KEY are required for BrowserStack provider"
+    );
   }
   const caps: Record<string, unknown> = {
     ...buildBaseAndroidCapabilities(config, appReset),

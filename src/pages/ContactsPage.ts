@@ -6,10 +6,7 @@ export class ContactsPage {
   protected base: Base;
 
   // Google Dialer main page locators
-  static readonly LOC_SEARCH_BAR: Locator = [
-    "id",
-    "com.google.android.dialer:id/search_bar",
-  ];
+  static readonly LOC_SEARCH_BAR: Locator = ["id", "com.google.android.dialer:id/search_bar"];
   static readonly LOC_VIEW_CONTACTS_BTN: Locator = [
     "xpath",
     '//android.widget.TextView[@text="View contacts"]',
@@ -48,22 +45,13 @@ export class ContactsPage {
     "xpath",
     '//android.widget.EditText[@hint="Email" or @text="Email"]',
   ];
-  static readonly LOC_SAVE_BTN: Locator = [
-    "accessibility id",
-    "Save",
-  ];
+  static readonly LOC_SAVE_BTN: Locator = ["accessibility id", "Save"];
   static readonly LOC_SAVE_CONTACT_BTN: Locator = [
     "xpath",
     '//android.widget.Button[@text="Save"]',
   ];
-  static readonly LOC_DELETE_BTN: Locator = [
-    "accessibility id",
-    "Delete",
-  ];
-  static readonly LOC_EDIT_BTN: Locator = [
-    "accessibility id",
-    "Edit",
-  ];
+  static readonly LOC_DELETE_BTN: Locator = ["accessibility id", "Delete"];
+  static readonly LOC_EDIT_BTN: Locator = ["accessibility id", "Edit"];
 
   constructor(driver: Browser) {
     this.driver = driver;
@@ -71,10 +59,7 @@ export class ContactsPage {
   }
 
   getContactByName(name: string): Locator {
-    return [
-      "xpath",
-      `//android.widget.TextView[@text="${name}"]`,
-    ];
+    return ["xpath", `//android.widget.TextView[@text="${name}"]`];
   }
 
   async clickViewContacts(): Promise<void> {

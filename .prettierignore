@@ -1,0 +1,11 @@
+node_modules/
+dist/
+mochawesome-report/
+allure-results/
+allure-report/
+report/
+coverage/
+eslint-report.json
+xray-report.json
+xray-execution-info.json
+package-lock.json

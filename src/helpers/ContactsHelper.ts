@@ -105,7 +105,9 @@ export class ContactsHelper {
     await this.dialerPage.clickSaveContact();
     await this.driver.pause(1000);
 
-    logger.info(`Contact created successfully via keypad: ${contact.firstName} ${contact.lastName}`);
+    logger.info(
+      `Contact created successfully via keypad: ${contact.firstName} ${contact.lastName}`
+    );
   }
 
   async verifyContactCreated(contact: ContactDetails): Promise<boolean> {
@@ -184,14 +186,14 @@ export class ContactsHelper {
     for (const contact of contacts) {
       const contactName = `${contact.firstName} ${contact.lastName}`;
       const verified = await this.contactsPage.isContactDisplayed(contactName);
-      
+
       if (verified) {
         logger.info(`✓ Contact verified: ${contactName}`);
       } else {
         logger.error(`✗ Contact not found: ${contactName}`);
         allVerified = false;
       }
-      
+
       await this.driver.pause(300);
     }
 

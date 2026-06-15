@@ -9,7 +9,9 @@ describe("Where Is My Train - Test Suite", function () {
   let driver: Browser;
   let trainHelper: WhereIsMyTrainHelper;
 
-  after(async () => { await stopAppiumServer(); });
+  after(async () => {
+    await stopAppiumServer();
+  });
 
   beforeEach(async function () {
     driver = await createDriver(false);

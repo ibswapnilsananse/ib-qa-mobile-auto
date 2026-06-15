@@ -18,9 +18,7 @@ export class Base {
       const textMatch = value.match(/@text=["']([^"']+)["']/);
       if (textMatch) return `Element - ${textMatch[1]}`;
 
-      const containsMatch = value.match(
-        /contains\(text\(\),\s*["']([^"']+)["']/
-      );
+      const containsMatch = value.match(/contains\(text\(\),\s*["']([^"']+)["']/);
       if (containsMatch) return `Element - ${containsMatch[1]}`;
 
       const idMatch = value.match(/@resource-id=["']([^"']+)["']/);
@@ -53,9 +51,7 @@ export class Base {
       logger.info(`Found element: [${locator[0]}, ${locator[1]}]`);
       return el;
     } catch (e) {
-      logger.error(
-        `Element not found: [${locator[0]}, ${locator[1]}], Error: ${e}`
-      );
+      logger.error(`Element not found: [${locator[0]}, ${locator[1]}], Error: ${e}`);
       throw e;
     }
   }
@@ -104,11 +100,7 @@ export class Base {
     }
   }
 
-  async clickOn(
-    locator: Locator,
-    timeout = 10000,
-    elementName?: string
-  ): Promise<boolean> {
+  async clickOn(locator: Locator, timeout = 10000, elementName?: string): Promise<boolean> {
     const name = this.getElementName(locator, elementName);
     try {
       logger.info(`Attempting to click on element [${name}]`);
@@ -129,26 +121,18 @@ export class Base {
   ): Promise<boolean> {
     const name = this.getElementName(locator, elementName);
     try {
-      logger.info(
-        `Waiting for element [${name}] to be displayed (timeout: ${timeout}ms)`
-      );
+      logger.info(`Waiting for element [${name}] to be displayed (timeout: ${timeout}ms)`);
       const el = await this.element(locator, timeout);
       await el.waitForDisplayed({ timeout });
       logger.info(`Element [${name}] is now displayed`);
       return true;
     } catch (e) {
-      logger.error(
-        `Error waiting for element [${name}] to be displayed: ${e}`
-      );
+      logger.error(`Error waiting for element [${name}] to be displayed: ${e}`);
       throw e;
     }
   }
 
-  async isDisplayed(
-    locator: Locator,
-    timeout = 10000,
-    elementName?: string
-  ): Promise<boolean> {
+  async isDisplayed(locator: Locator, timeout = 10000, elementName?: string): Promise<boolean> {
     const name = this.getElementName(locator, elementName);
     try {
       logger.info(`Checking if element [${name}] is displayed`);
@@ -162,11 +146,7 @@ export class Base {
     }
   }
 
-  async isPresent(
-    locator: Locator,
-    timeout = 10000,
-    elementName?: string
-  ): Promise<boolean> {
+  async isPresent(locator: Locator, timeout = 10000, elementName?: string): Promise<boolean> {
     const name = this.getElementName(locator, elementName);
     try {
       logger.info(`Checking if element [${name}] is present`);
@@ -180,11 +160,7 @@ export class Base {
     }
   }
 
-  async isEnabled(
-    locator: Locator,
-    timeout = 10000,
-    elementName?: string
-  ): Promise<boolean> {
+  async isEnabled(locator: Locator, timeout = 10000, elementName?: string): Promise<boolean> {
     const name = this.getElementName(locator, elementName);
     try {
       logger.info(`Checking if element [${name}] is enabled`);
@@ -215,10 +191,10 @@ export class Base {
     value: string,
     disappearTimeout = 25000
   ): Promise<void> {
-    const locator: Locator = [strategy === "text" ? "xpath" : strategy,
-      strategy === "text"
-        ? `//android.widget.TextView[@text="${value}"]`
-        : value];
+    const locator: Locator = [
+      strategy === "text" ? "xpath" : strategy,
+      strategy === "text" ? `//android.widget.TextView[@text="${value}"]` : value,
+    ];
     const selector = this.buildSelector(locator);
     try {
       const el = await this.driver.$(selector);
@@ -260,14 +236,10 @@ export class Base {
         const el = await this.driver.$(
           `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(${expression})`
         );
-        logger.info(
-          `Element found after ${attempt + 1} attempts: ${locatorType}=${locValue}`
-        );
+        logger.info(`Element found after ${attempt + 1} attempts: ${locatorType}=${locValue}`);
         return el;
       } catch {
-        logger.debug(
-          `Element not found, scrolling further (attempt ${attempt + 1})`
-        );
+        logger.debug(`Element not found, scrolling further (attempt ${attempt + 1})`);
         try {
           await this.driver.$(
             `android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()`
@@ -284,12 +256,7 @@ export class Base {
     return null;
   }
 
-  async touchAndMove(
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number
-  ): Promise<void> {
+  async touchAndMove(startX: number, startY: number, endX: number, endY: number): Promise<void> {
     await this.driver.performActions([
       {
         type: "pointer",

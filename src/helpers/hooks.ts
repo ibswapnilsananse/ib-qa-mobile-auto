@@ -4,7 +4,16 @@ import { ContentType } from "allure-js-commons";
 import * as fs from "fs";
 import * as path from "path";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { allure } = require("allure-mocha/runtime") as { allure: { attachment: (name: string, content: Buffer, opts: { contentType: string; fileExtension: string }) => void; currentTest: unknown } };
+const { allure } = require("allure-mocha/runtime") as {
+  allure: {
+    attachment: (
+      name: string,
+      content: Buffer,
+      opts: { contentType: string; fileExtension: string }
+    ) => void;
+    currentTest: unknown;
+  };
+};
 
 const screenshotDir = path.resolve(__dirname, "../../report/failure_screenshots");
 if (!fs.existsSync(screenshotDir)) {
@@ -19,11 +28,17 @@ function isAllureActive(): boolean {
   }
 }
 
-function allureAttachment(name: string, content: Buffer, opts: { contentType: string; fileExtension: string }): void {
+function allureAttachment(
+  name: string,
+  content: Buffer,
+  opts: { contentType: string; fileExtension: string }
+): void {
   if (!isAllureActive()) return;
   try {
     allure.attachment(name, content, opts);
-  } catch { /* skip */ }
+  } catch {
+    /* skip */
+  }
 }
 
 export const mochaHooks = {
@@ -46,20 +61,28 @@ export const mochaHooks = {
 
         await driver.saveScreenshot(filePath);
 
-        allureAttachment("Failure Screenshot", fs.readFileSync(filePath), { contentType: ContentType.PNG, fileExtension: "png" });
+        allureAttachment("Failure Screenshot", fs.readFileSync(filePath), {
+          contentType: ContentType.PNG,
+          fileExtension: "png",
+        });
 
         try {
           addContext(this, { title: "Failure Screenshot", value: filePath });
-        } catch { /* skip */ }
-
-      } catch { /* session already dead, skip */ }
+        } catch {
+          /* skip */
+        }
+      } catch {
+        /* session already dead, skip */
+      }
     }
 
     // ── 2. Quit driver ────────────────────────────────────────────────
     if (driver) {
       try {
         await driver.deleteSession();
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global as any).currentDriver = null;
     }
@@ -69,13 +92,18 @@ export const mochaHooks = {
     if (logs.length > 0) {
       const logText = logs.join("\n");
 
-      allureAttachment("Test Logs", Buffer.from(logText), { contentType: ContentType.TEXT, fileExtension: "txt" });
+      allureAttachment("Test Logs", Buffer.from(logText), {
+        contentType: ContentType.TEXT,
+        fileExtension: "txt",
+      });
 
       try {
         addContext(this, { title: "Test Logs", value: logText });
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
 
       clearLogBuffer(); // ← MUST be last
     }
-  }
+  },
 };

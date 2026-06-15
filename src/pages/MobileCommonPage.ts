@@ -19,14 +19,8 @@ export class MobileCommonPage {
     "xpath",
     '//android.widget.Button[@text="Choose Dates"]',
   ];
-  static readonly LOC_NAV_UP: Locator = [
-    "accessibility id",
-    "Navigate up",
-  ];
-  static readonly LOC_CANCEL_BUTTON: Locator = [
-    "accessibility id",
-    "Cancel",
-  ];
+  static readonly LOC_NAV_UP: Locator = ["accessibility id", "Navigate up"];
+  static readonly LOC_CANCEL_BUTTON: Locator = ["accessibility id", "Cancel"];
   static readonly LOC_NAV_BACK_BTN: Locator = [
     "xpath",
     '//android.view.View[@content-desc="Back button"]',
@@ -68,9 +62,7 @@ export class MobileCommonPage {
 
       if (forFlights) {
         logger.info("Clicking calendar date input field");
-        await this.base.clickOn(
-          MobileCommonPage.LOC_SELECT_CALENDAR_DATES_INPUT
-        );
+        await this.base.clickOn(MobileCommonPage.LOC_SELECT_CALENDAR_DATES_INPUT);
       }
 
       logger.info(`Scrolling to find and select departure date: ${from}`);
@@ -101,10 +93,7 @@ export class MobileCommonPage {
     }
   }
 
-  async scrollAndFindDate(
-    targetDateLocator: Locator,
-    maxSwipes = 10
-  ): Promise<void> {
+  async scrollAndFindDate(targetDateLocator: Locator, maxSwipes = 10): Promise<void> {
     logger.info(`Starting to scroll and find date with max ${maxSwipes} swipes`);
     const scrollerLocator: Locator = [
       "xpath",

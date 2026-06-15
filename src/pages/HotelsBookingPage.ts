@@ -36,10 +36,7 @@ export class HotelsBookingPage extends MobileCommonPage {
     "id",
     "com.hopper.mountainview.play:id/datesSelector",
   ];
-  static readonly FILTER_LINK: Locator = [
-    "id",
-    "com.hopper.mountainview.play:id/filters_link",
-  ];
+  static readonly FILTER_LINK: Locator = ["id", "com.hopper.mountainview.play:id/filters_link"];
 
   static readonly LOC_DISPLAYED_HOTEL_DATA =
     '//android.widget.FrameLayout[@resource-id="com.hopper.mountainview.play:id/lodging_count"]//android.widget.TextView';
@@ -77,35 +74,21 @@ export class HotelsBookingPage extends MobileCommonPage {
     startDate: string,
     toDate: string
   ): Promise<void> {
-    logger.info(
-      `Starting hotel search for city: ${cityLocation} from ${startDate} to ${toDate}`
-    );
+    logger.info(`Starting hotel search for city: ${cityLocation} from ${startDate} to ${toDate}`);
     await this.base.sendText(HotelsBookingPage.LOC_HOTEL_LOCATION, cityLocation);
-    await this.base.waitUntilDisplayed(
-      this.getLocationSuggestion(cityLocation)
-    );
+    await this.base.waitUntilDisplayed(this.getLocationSuggestion(cityLocation));
     await this.base.clickOn(this.getLocationSuggestion(cityLocation));
 
-    const dateSelected = await this.selectCalendarDateRange(
-      startDate,
-      toDate,
-      false
-    );
+    const dateSelected = await this.selectCalendarDateRange(startDate, toDate, false);
     if (!dateSelected) throw new Error("Failed to select date range");
 
-    await this.base.waitUntilDisplayed(
-      HotelsBookingPage.LOC_HOTEL_SEARCH_PAGE_TITLE,
-      30000
-    );
+    await this.base.waitUntilDisplayed(HotelsBookingPage.LOC_HOTEL_SEARCH_PAGE_TITLE, 30000);
     await this.base.isDisplayed(HotelsBookingPage.LOC_HOTEL_SEARCH_PAGE_TITLE);
     await this.verifyDateOnHotelDetailsPage(startDate, toDate);
     logger.info("Hotel search parameters entered successfully");
   }
 
-  async verifyDateOnHotelDetailsPage(
-    startDate: string,
-    toDate: string
-  ): Promise<void> {
+  async verifyDateOnHotelDetailsPage(startDate: string, toDate: string): Promise<void> {
     const [startDay, startMonth] = startDate.split(" ");
     const [toDay, toMonth] = toDate.split(" ");
     const expectedDateRange =
@@ -113,9 +96,7 @@ export class HotelsBookingPage extends MobileCommonPage {
         ? `${startMonth} ${startDay} - ${toMonth} ${toDay}`
         : `${startMonth} ${startDay} - ${toDay}`;
 
-    const displayedDateRange = await this.base.getText(
-      HotelsBookingPage.LOC_DISPLAYED_DATE_RANGE
-    );
+    const displayedDateRange = await this.base.getText(HotelsBookingPage.LOC_DISPLAYED_DATE_RANGE);
     logger.info(
       `Verifying date range - Expected: ${expectedDateRange}, Displayed: ${displayedDateRange}`
     );
@@ -171,10 +152,7 @@ export class HotelsBookingPage extends MobileCommonPage {
     logger.info("All filters applied successfully");
   }
 
-  async setMinAndMaxRange(
-    minRange: number,
-    maxRange: number
-  ): Promise<void> {
+  async setMinAndMaxRange(minRange: number, maxRange: number): Promise<void> {
     await this.base.scrollUntilElementFound("Nightly Price");
     await this.adjustSlider(HotelsBookingPage.MAX_SLIDER, maxRange, "left");
     await this.adjustSlider(HotelsBookingPage.MIN_SLIDER, minRange, "right");
@@ -189,11 +167,7 @@ export class HotelsBookingPage extends MobileCommonPage {
     };
     const sortOption = sortOptionsDict[sortBy] ?? 3;
 
-    await this.base.scrollUntilElementFound(
-      "android.widget.RadioButton",
-      "class",
-      sortOption
-    );
+    await this.base.scrollUntilElementFound("android.widget.RadioButton", "class", sortOption);
 
     const radioButtonXpath = `(//android.widget.RadioButton)[${sortOption}]`;
     const maxRetries = 3;
@@ -202,30 +176,19 @@ export class HotelsBookingPage extends MobileCommonPage {
       try {
         await this.base.clickOn(["xpath", radioButtonXpath]);
         await this.driver.pause(1000);
-        const radioButton = await this.base.element([
-          "xpath",
-          radioButtonXpath,
-        ]);
+        const radioButton = await this.base.element(["xpath", radioButtonXpath]);
         const isSelected = await radioButton.getAttribute("selected");
         if (isSelected === "true") {
-          logger.info(
-            `Sort selected for ${sortBy} with index ${sortOption}`
-          );
+          logger.info(`Sort selected for ${sortBy} with index ${sortOption}`);
           return;
         }
-        logger.info(
-          `Attempt ${attempt + 1}: Radio button not selected, retrying...`
-        );
+        logger.info(`Attempt ${attempt + 1}: Radio button not selected, retrying...`);
       } catch (e) {
-        logger.warn(
-          `Attempt ${attempt + 1}: Error selecting sort option, retrying... ${e}`
-        );
+        logger.warn(`Attempt ${attempt + 1}: Error selecting sort option, retrying... ${e}`);
         await this.driver.pause(1000);
       }
     }
-    logger.error(
-      `Failed to select sort option ${sortBy} after ${maxRetries} attempts`
-    );
+    logger.error(`Failed to select sort option ${sortBy} after ${maxRetries} attempts`);
   }
 
   async adjustSlider(
@@ -256,9 +219,7 @@ export class HotelsBookingPage extends MobileCommonPage {
       "resource-id",
       1
     );
-    const sliderWidget = await this.base.element(
-      this.getSliderWidget("Star")
-    );
+    const sliderWidget = await this.base.element(this.getSliderWidget("Star"));
     const sortOptions: Record<string, number> = {
       Any: 1,
       "+2": 2,
@@ -267,16 +228,8 @@ export class HotelsBookingPage extends MobileCommonPage {
       "+5": 5,
     };
     const starRatingValue = sortOptions[rating] ?? 4;
-    const sliderPoint = await this.base.element(
-      this.getSliderPointer("Star")
-    );
-    await this.moveSliderToRating(
-      sliderWidget,
-      sliderPoint,
-      1,
-      starRatingValue,
-      5
-    );
+    const sliderPoint = await this.base.element(this.getSliderPointer("Star"));
+    await this.moveSliderToRating(sliderWidget, sliderPoint, 1, starRatingValue, 5);
   }
 
   async selectUserRating(rating: string): Promise<void> {
@@ -285,25 +238,15 @@ export class HotelsBookingPage extends MobileCommonPage {
       "resource-id",
       2
     );
-    const sliderWidget = await this.base.element(
-      this.getSliderWidget("User")
-    );
+    const sliderWidget = await this.base.element(this.getSliderWidget("User"));
     const sortOptions: Record<string, number> = {
       Any: 1,
       "Very Good": 2,
       Excellent: 3,
     };
     const userRatingValue = sortOptions[rating] ?? 3;
-    const sliderPoint = await this.base.element(
-      this.getSliderPointer("User")
-    );
-    await this.moveSliderToRating(
-      sliderWidget,
-      sliderPoint,
-      1,
-      userRatingValue,
-      3
-    );
+    const sliderPoint = await this.base.element(this.getSliderPointer("User"));
+    await this.moveSliderToRating(sliderWidget, sliderPoint, 1, userRatingValue, 3);
   }
 
   async getSliderValue(minOrMax: "left" | "right"): Promise<number> {
@@ -313,11 +256,7 @@ export class HotelsBookingPage extends MobileCommonPage {
     return minOrMax === "right" ? numbers[0] : numbers[1];
   }
 
-  async moveSlider(
-    slider: Element,
-    direction: "left" | "right",
-    step = 30
-  ): Promise<void> {
+  async moveSlider(slider: Element, direction: "left" | "right", step = 30): Promise<void> {
     const sliderSize = await slider.getSize();
     const sliderLocation = await slider.getLocation();
     const startX = sliderLocation.x + sliderSize.width / 2;
@@ -360,9 +299,7 @@ export class HotelsBookingPage extends MobileCommonPage {
       `Verifying hotel search results for ${location} with price range ${minPrice}-${maxPrice}`
     );
 
-    const hotelLocation = await this.base.getText(
-      HotelsBookingPage.LOC_HOTEL_LOCATION_ON_RESULT
-    );
+    const hotelLocation = await this.base.getText(HotelsBookingPage.LOC_HOTEL_LOCATION_ON_RESULT);
 
     const locHotelResultCard: Locator = [
       "xpath",
@@ -413,9 +350,7 @@ export class HotelsBookingPage extends MobileCommonPage {
       if (freeCancText.toLowerCase() !== "free cancellation") {
         throw new Error("free_cancellation not displayed");
       }
-      logger.info(
-        `Result card found with free Cancellation: ${freeCancText}`
-      );
+      logger.info(`Result card found with free Cancellation: ${freeCancText}`);
     }
     await this.verifyDateOnHotelDetailsPage(fromDate, toDate);
     logger.info("Hotel search results verification successful");

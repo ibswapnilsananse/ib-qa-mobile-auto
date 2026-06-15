@@ -111,9 +111,7 @@ export class AddToContactPage {
   }
 
   async clickAddToFavorites(): Promise<void> {
-    const element = await this.base.element(
-      AddToContactPage.LOC_ADD_TO_FAVORITES_BTN
-    );
+    const element = await this.base.element(AddToContactPage.LOC_ADD_TO_FAVORITES_BTN);
     await element.click();
   }
 

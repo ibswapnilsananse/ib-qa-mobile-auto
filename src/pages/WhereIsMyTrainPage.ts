@@ -21,10 +21,7 @@ export class WhereIsMyTrainPage {
     '//android.view.View[@content-desc="To Station"]//android.widget.EditText',
   ];
 
-  static readonly LOC_FIND_TRAINS_BTN: Locator = [
-    "xpath",
-    '//*[@content-desc="Find trains"]',
-  ];
+  static readonly LOC_FIND_TRAINS_BTN: Locator = ["xpath", '//*[@content-desc="Find trains"]'];
 
   static readonly LOC_TRAIN_NO_SEARCH_INPUT: Locator = [
     "xpath",
@@ -49,7 +46,7 @@ export class WhereIsMyTrainPage {
   // ── Station Autocomplete Suggestion ──────────────────────────────────────
   static readonly LOC_AUTOCOMPLETE_LIST: Locator = [
     "xpath",
-    '//android.widget.ListView | //android.support.v7.widget.RecyclerView',
+    "//android.widget.ListView | //android.support.v7.widget.RecyclerView",
   ];
 
   // ── SearchByTrainNoTrainName Page ─────────────────────────────────────────
@@ -63,10 +60,7 @@ export class WhereIsMyTrainPage {
     "com.whereismytrain.android:id/train_chooser_rv",
   ];
 
-  static readonly LOC_TRAIN_NO_IN_LIST: Locator = [
-    "id",
-    "com.whereismytrain.android:id/train_no",
-  ];
+  static readonly LOC_TRAIN_NO_IN_LIST: Locator = ["id", "com.whereismytrain.android:id/train_no"];
 
   static readonly LOC_TRAIN_NAME_IN_LIST: Locator = [
     "id",
@@ -157,7 +151,10 @@ export class WhereIsMyTrainPage {
     await this.driver.pause(1500);
   }
 
-  private async selectSuggestionByLocator(searchTerm: string, fieldLocator: Locator): Promise<void> {
+  private async selectSuggestionByLocator(
+    searchTerm: string,
+    fieldLocator: Locator
+  ): Promise<void> {
     await this.driver.pause(2000);
     const uiAutomatorLocator: Locator = [
       "android",
@@ -179,11 +176,7 @@ export class WhereIsMyTrainPage {
       } catch {
         // use defaults
       }
-      await this.driver.action("pointer")
-        .move({ x: tapX, y: tapY })
-        .down()
-        .up()
-        .perform();
+      await this.driver.action("pointer").move({ x: tapX, y: tapY }).down().up().perform();
     }
     await this.driver.pause(1000);
   }

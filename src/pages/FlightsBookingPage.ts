@@ -37,14 +37,9 @@ export class FlightsBookingPage extends MobileCommonPage {
   }
 
   async selectCity(isSource: boolean, cityName: string): Promise<void> {
-    logger.info(
-      `Selecting ${isSource ? "source" : "destination"} city: ${cityName}`
-    );
+    logger.info(`Selecting ${isSource ? "source" : "destination"} city: ${cityName}`);
     await this.base.sendText(this.cityInputField(isSource), cityName);
-    await this.base.waitUntilDisplayed(
-      this.populatedSuggestionsForCity(cityName),
-      30000
-    );
+    await this.base.waitUntilDisplayed(this.populatedSuggestionsForCity(cityName), 30000);
     await this.base.clickOn(this.populatedSuggestionsForCity(cityName));
   }
 
@@ -69,8 +64,7 @@ export class FlightsBookingPage extends MobileCommonPage {
     logger.info("Waiting for loading screen to disappear");
     await this.base.waitUntilElementDisappears("text", "LOADING", 25000);
 
-    const notWatchingId =
-      "com.hopper.mountainview.play:id/not_watching_button";
+    const notWatchingId = "com.hopper.mountainview.play:id/not_watching_button";
     logger.info("Clicking add to watch button");
     await this.base.clickOn(["id", notWatchingId]);
     await this.driver.pause(5000);
@@ -86,9 +80,7 @@ export class FlightsBookingPage extends MobileCommonPage {
   async handleEmailAd(): Promise<void> {
     logger.info("Checking for email ad popup");
     try {
-      const elements = await this.base.elements(
-        FlightsBookingPage.LOC_CLOSE_BTN_ON_EMAIL_AD
-      );
+      const elements = await this.base.elements(FlightsBookingPage.LOC_CLOSE_BTN_ON_EMAIL_AD);
       if (elements.length > 0) {
         logger.info("Email ad popup found, attempting to close");
         await this.base.clickOn(
@@ -108,30 +100,19 @@ export class FlightsBookingPage extends MobileCommonPage {
         );
         logger.info("Email ad popup closed on second attempt");
       } catch (e2) {
-        logger.info(
-          `No email ad popup found or unable to close: ${e2}`
-        );
+        logger.info(`No email ad popup found or unable to close: ${e2}`);
       }
     }
   }
 
-  async verifyFlightIsAddedUnderWatches(
-    fromCity: string,
-    toCity: string
-  ): Promise<void> {
-    logger.info(
-      `Starting verification of flight from ${fromCity} to ${toCity} in watch list`
-    );
+  async verifyFlightIsAddedUnderWatches(fromCity: string, toCity: string): Promise<void> {
+    logger.info(`Starting verification of flight from ${fromCity} to ${toCity} in watch list`);
     const locCityRoute: Locator = [
       "xpath",
       `//android.widget.TextView[contains(@text,"${fromCity} to ${toCity}")]`,
     ];
     logger.info("Waiting for city route text to be displayed");
-    await this.base.waitUntilDisplayed(
-      locCityRoute,
-      undefined,
-      "City Route Text"
-    );
+    await this.base.waitUntilDisplayed(locCityRoute, undefined, "City Route Text");
     logger.info("Verifying city route text is visible");
     await this.base.isDisplayed(locCityRoute, undefined, "City Route Text");
     logger.info("Navigating back");

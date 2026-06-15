@@ -39,14 +39,8 @@ export class HomePage extends MobileCommonPage {
 
   static readonly LOC_FLIGHTS_TAB: Locator = getTabLocator("Flights");
   static readonly LOC_HOTELS_TAB: Locator = getTabLocator("Hotels");
-  static readonly LOC_DEALS_TAB: Locator = [
-    "id",
-    "com.hopper.mountainview.play:id/dealsTab",
-  ];
-  static readonly LOC_PROFILE_TAB: Locator = [
-    "id",
-    "com.hopper.mountainview.play:id/profileTab",
-  ];
+  static readonly LOC_DEALS_TAB: Locator = ["id", "com.hopper.mountainview.play:id/dealsTab"];
+  static readonly LOC_PROFILE_TAB: Locator = ["id", "com.hopper.mountainview.play:id/profileTab"];
   static readonly LOC_WATCHES_TAB: Locator = getTabLocator("Watches");
   static readonly LOC_TREES_TAB: Locator = getTabLocator("Trees");
 
@@ -91,21 +85,13 @@ export class HomePage extends MobileCommonPage {
 
   async navigateToProfile(): Promise<void> {
     logger.info("Navigating to profile tab");
-    await this.base.clickOn(
-      HomePage.LOC_PROFILE_TAB,
-      undefined,
-      "Profile Tab"
-    );
+    await this.base.clickOn(HomePage.LOC_PROFILE_TAB, undefined, "Profile Tab");
     logger.info("Successfully navigated to profile tab");
   }
 
   async navigateToWatches(): Promise<void> {
     logger.info("Navigating to watches tab");
-    await this.base.clickOn(
-      HomePage.LOC_WATCHES_TAB,
-      undefined,
-      "Watches Tab"
-    );
+    await this.base.clickOn(HomePage.LOC_WATCHES_TAB, undefined, "Watches Tab");
     logger.info("Successfully navigated to watches tab");
   }
 
@@ -141,10 +127,7 @@ export class HomePage extends MobileCommonPage {
           ["xpath", '//android.widget.TextView[@text="Not now"]'],
           5000
         );
-        await this.base.clickOn([
-          "xpath",
-          '//android.widget.TextView[@text="Not now"]',
-        ]);
+        await this.base.clickOn(["xpath", '//android.widget.TextView[@text="Not now"]']);
         logger.info("Additional ad skipped successfully");
       } catch {
         logger.info("No additional ad to skip");
@@ -158,11 +141,8 @@ export class HomePage extends MobileCommonPage {
     logger.info("Navigating to profile settings");
     await this.base.clickOn(HomePage.LOC_PROFILE);
     await this.base.waitUntilDisplayed(HomePage.LOC_HELP_CENTER_LINK);
-    const displayed = await this.base.isDisplayed(
-      HomePage.LOC_HELP_CENTER_LINK
-    );
-    if (!displayed)
-      throw new Error("Help Center link not displayed in profile settings");
+    const displayed = await this.base.isDisplayed(HomePage.LOC_HELP_CENTER_LINK);
+    if (!displayed) throw new Error("Help Center link not displayed in profile settings");
     logger.info("Successfully navigated to profile settings");
   }
 
@@ -172,11 +152,7 @@ export class HomePage extends MobileCommonPage {
     for (const currency of currencyList) {
       try {
         logger.info(`Processing currency: ${currency}`);
-        await this.base.clickOn(
-          HomePage.CURRENCY_DROP_DOWN,
-          undefined,
-          "Currency Dropdown"
-        );
+        await this.base.clickOn(HomePage.CURRENCY_DROP_DOWN, undefined, "Currency Dropdown");
         await this.base.scrollUntilElementFound(currency);
 
         const currencyElement: Locator = [
@@ -196,14 +172,8 @@ export class HomePage extends MobileCommonPage {
           currencyCodeText = currencyCodeText.trim();
         }
 
-        await this.base.clickOn(
-          currencyElement,
-          undefined,
-          `Currency Option - ${currency}`
-        );
-        logger.info(
-          `Selected currency: ${currency} with code: ${currencyCodeText}`
-        );
+        await this.base.clickOn(currencyElement, undefined, `Currency Option - ${currency}`);
+        logger.info(`Selected currency: ${currency} with code: ${currencyCodeText}`);
 
         await this.verifyWalletCurrency(currency, currencyCodeText);
         logger.info(`Successfully verified currency: ${currency}`);
@@ -224,15 +194,10 @@ export class HomePage extends MobileCommonPage {
     }
   }
 
-  async verifyWalletCurrency(
-    currency: string,
-    currencyCode: string
-  ): Promise<boolean> {
+  async verifyWalletCurrency(currency: string, currencyCode: string): Promise<boolean> {
     try {
       await this.driver.pause(1000);
-      const displayedCurrency = await this.base.getText(
-        HomePage.LOC_WALLET_CURRENCY
-      );
+      const displayedCurrency = await this.base.getText(HomePage.LOC_WALLET_CURRENCY);
 
       if (displayedCurrency.includes(currencyCode)) {
         logger.info(
@@ -252,10 +217,7 @@ export class HomePage extends MobileCommonPage {
 
   async verifyTextOnTreesPage(textList: string[]): Promise<void> {
     for (const text of textList) {
-      const locator: Locator = [
-        "xpath",
-        `//android.widget.TextView[contains(@text, '${text}')]`,
-      ];
+      const locator: Locator = ["xpath", `//android.widget.TextView[contains(@text, '${text}')]`];
       try {
         await this.base.waitUntilDisplayed(locator, 5000);
         logger.info(`Text '${text}' found on page`);
@@ -282,20 +244,14 @@ export class HomePage extends MobileCommonPage {
       10000
     );
     if (!walletDisplayed)
-      throw new Error(
-        "Failed to navigate to wallet page - wallet history not displayed"
-      );
+      throw new Error("Failed to navigate to wallet page - wallet history not displayed");
 
     const viewHistoryLocator: Locator = [
       "xpath",
       "//android.widget.TextView[contains(@text, 'View your history')]",
     ];
     await this.base.waitUntilDisplayed(viewHistoryLocator, 10000);
-    await this.base.clickOn(
-      viewHistoryLocator,
-      undefined,
-      "View History Button"
-    );
+    await this.base.clickOn(viewHistoryLocator, undefined, "View History Button");
 
     for (const text of textList) {
       try {
@@ -303,18 +259,14 @@ export class HomePage extends MobileCommonPage {
           "xpath",
           `//android.widget.TextView[contains(@text, '${text}')]`,
         ];
-        const found = await this.base
-          .waitUntilDisplayed(textLocator, 10000)
-          .catch(() => false);
+        const found = await this.base.waitUntilDisplayed(textLocator, 10000).catch(() => false);
         if (!found) {
           await this.base.scrollUntilElementFound(text);
           const foundAfterScroll = await this.base
             .waitUntilDisplayed(textLocator, 10000)
             .catch(() => false);
           if (!foundAfterScroll) {
-            throw new Error(
-              `Text '${text}' not found even after scrolling`
-            );
+            throw new Error(`Text '${text}' not found even after scrolling`);
           }
         }
         logger.info(`Successfully verified text: ${text}`);

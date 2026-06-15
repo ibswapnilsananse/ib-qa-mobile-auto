@@ -6,10 +6,7 @@ export class DialerPage {
   protected base: Base;
 
   // Landing page locators
-  static readonly LOC_SEARCH_BAR: Locator = [
-    "id",
-    "com.google.android.dialer:id/search_bar",
-  ];
+  static readonly LOC_SEARCH_BAR: Locator = ["id", "com.google.android.dialer:id/search_bar"];
   static readonly LOC_HAMBURGER_MENU: Locator = [
     "xpath",
     '//android.widget.ImageButton[@content-desc="Open navigation drawer"]',
@@ -24,18 +21,9 @@ export class DialerPage {
   ];
 
   // Navigation tabs
-  static readonly LOC_HOME_TAB: Locator = [
-    "id",
-    "com.google.android.dialer:id/tab_call_history",
-  ];
-  static readonly LOC_KEYPAD_TAB: Locator = [
-    "id",
-    "com.google.android.dialer:id/tab_dialpad",
-  ];
-  static readonly LOC_VOICEMAIL_TAB: Locator = [
-    "id",
-    "com.google.android.dialer:id/tab_voicemail",
-  ];
+  static readonly LOC_HOME_TAB: Locator = ["id", "com.google.android.dialer:id/tab_call_history"];
+  static readonly LOC_KEYPAD_TAB: Locator = ["id", "com.google.android.dialer:id/tab_dialpad"];
+  static readonly LOC_VOICEMAIL_TAB: Locator = ["id", "com.google.android.dialer:id/tab_voicemail"];
 
   // Hamburger menu items
   static readonly LOC_MENU_CONTACTS: Locator = [
@@ -56,10 +44,7 @@ export class DialerPage {
   ];
 
   // Keypad page locators
-  static readonly LOC_DIALPAD_INPUT: Locator = [
-    "id",
-    "com.google.android.dialer:id/digits",
-  ];
+  static readonly LOC_DIALPAD_INPUT: Locator = ["id", "com.google.android.dialer:id/digits"];
   static readonly LOC_CREATE_NEW_CONTACT_ACTION: Locator = [
     "xpath",
     '//android.widget.TextView[@text="Create new contact"]',
@@ -150,7 +135,7 @@ export class DialerPage {
 
   async enterPhoneNumber(phoneNumber: string): Promise<void> {
     // Remove formatting characters and type the actual digits
-    const cleanNumber = phoneNumber.replace(/[-\s()]/g, '');
+    const cleanNumber = phoneNumber.replace(/[-\s()]/g, "");
     await this.base.sendText(DialerPage.LOC_DIALPAD_INPUT, cleanNumber);
   }
 
@@ -179,10 +164,7 @@ export class DialerPage {
   }
 
   async isMenuItemDisplayed(text: string): Promise<boolean> {
-    const locator: Locator = [
-      "xpath",
-      `//android.widget.CheckedTextView[@text="${text}"]`,
-    ];
+    const locator: Locator = ["xpath", `//android.widget.CheckedTextView[@text="${text}"]`];
     try {
       const element = await this.base.element(locator, 5000);
       return await element.isDisplayed();
@@ -201,12 +183,12 @@ export class DialerPage {
 
   async enterContactName(name: string): Promise<void> {
     // For backward compatibility, split name into first and last
-    const parts = name.trim().split(' ');
+    const parts = name.trim().split(" ");
     if (parts.length > 0) {
       await this.enterContactFirstName(parts[0]);
     }
     if (parts.length > 1) {
-      await this.enterContactLastName(parts.slice(1).join(' '));
+      await this.enterContactLastName(parts.slice(1).join(" "));
     }
   }
 

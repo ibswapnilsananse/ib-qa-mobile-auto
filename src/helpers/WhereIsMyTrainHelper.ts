@@ -17,7 +17,12 @@ export class WhereIsMyTrainHelper {
     return this.page.isHomePageDisplayed();
   }
 
-  async verifyHomePageElements(): Promise<{ home: boolean; from: boolean; to: boolean; findTrains: boolean }> {
+  async verifyHomePageElements(): Promise<{
+    home: boolean;
+    from: boolean;
+    to: boolean;
+    findTrains: boolean;
+  }> {
     const home = await this.page.isHomePageDisplayed();
     const from = await this.page.isFromStationInputDisplayed();
     const to = await this.page.isToStationInputDisplayed();

@@ -1,6 +1,6 @@
-# Hopper App Automation – TypeScript + Appium + Mocha
+# IB QA Mobile Automation – TypeScript + Appium + Mocha
 
-A UI Test Automation framework for the Hopper native Android application, built with **TypeScript**, **Appium**, and **Mocha**. Allure is supported for rich reporting.
+A UI Test Automation framework for Android applications, built with **TypeScript**, **Appium**, and **Mocha**. Allure is supported for rich reporting.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ A UI Test Automation framework for the Hopper native Android application, built 
 ## Project Structure
 
 ```
-HopperClientDemo-ts/
+ib-qa-mobile-auto/
 ├── src/
 │   ├── helpers/              # Driver management, base utilities, flow helpers
 │   │   ├── appiumDriver.ts   # Appium server + driver lifecycle
@@ -28,7 +28,7 @@ HopperClientDemo-ts/
 │   │   ├── FlightsBookingPage.ts
 │   │   └── HotelsBookingPage.ts
 │   └── testsuite/            # Mocha test specs
-│       └── testSuiteHopper.test.ts
+│       └── testSuiteContacts.test.ts
 ├── TestData/
 │   └── testData.ts           # Typed static test data
 ├── .env                      # Device capabilities & config
@@ -43,7 +43,7 @@ HopperClientDemo-ts/
 
 1. **Install dependencies:**
    ```bash
-   cd HopperClientDemo-ts
+   cd ib-qa-mobile-auto
    npm install
    ```
 
@@ -54,9 +54,9 @@ HopperClientDemo-ts/
    PLATFORM_VERSION=12
    DEVICE_NAME=Nexus 5
    UDID=emulator-5554
-   APP_PACKAGE=com.hopper.mountainview.play
-   APP_ACTIVITY=com.hopper.mountainview.activities.LaunchPage
-   APK_FILE_PATH=app/hopper.apk
+   APP_PACKAGE=com.example.app
+   APP_ACTIVITY=com.example.app.MainActivity
+   APK_FILE_PATH=app/app.apk
    ```
 
 3. **Set up Android environment:**
@@ -160,7 +160,7 @@ it("Test 01: Create Single Contact [MYY-30]", async function () {
 | `Base` class              | `Base` class                           |
 | Page Object classes       | Page Object classes (same hierarchy)   |
 | Helper/Flow classes       | Helper/Flow classes (same hierarchy)   |
-| `test_suite_hopper.py`    | `testSuiteHopper.test.ts`             |
+| `test_suite_hopper.py`    | `testSuiteContacts.test.ts`           |
 | `allure-pytest`           | `allure-mocha`                         |
 | `python-dotenv`           | `dotenv`                               |
 | `logging`                 | `winston`                              |

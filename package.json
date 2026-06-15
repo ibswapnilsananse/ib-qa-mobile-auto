@@ -1,7 +1,7 @@
 {
-  "name": "hopper-client-demo-ts",
+  "name": "ib-qa-mobile-auto",
   "version": "1.0.0",
-  "description": "Hopper mobile app automation framework – TypeScript + Appium + Mocha",
+  "description": "IB QA mobile automation framework – TypeScript + Appium + Mocha",
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint 'src/**/*.ts'",
@@ -40,6 +40,7 @@
     "mocha": "^10.7.0",
     "mocha-multi-reporters": "^1.5.1",
     "mochawesome": "^7.1.4",
+    "prettier": "^3.8.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"
   },
