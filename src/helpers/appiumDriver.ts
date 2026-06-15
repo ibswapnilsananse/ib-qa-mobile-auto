@@ -299,6 +299,7 @@ export async function createDriver(appReset = false): Promise<Browser> {
       driver = await createLocalDriver(config, appReset);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).currentDriver = driver;
   logger.info("Appium driver created successfully");
   return driver;
@@ -312,6 +313,7 @@ export async function quitDriver(driver: Browser | null): Promise<void> {
     } catch (e) {
       logger.error(`Error closing Appium session: ${e}`);
     } finally {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global as any).currentDriver = null;
     }
   }

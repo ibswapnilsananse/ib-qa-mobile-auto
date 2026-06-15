@@ -3,7 +3,8 @@ import addContext from "mochawesome/addContext";
 import { ContentType } from "allure-js-commons";
 import * as fs from "fs";
 import * as path from "path";
-const { allure } = require("allure-mocha/runtime");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { allure } = require("allure-mocha/runtime") as { allure: { attachment: (name: string, content: Buffer, opts: { contentType: string; fileExtension: string }) => void; currentTest: unknown } };
 
 const screenshotDir = path.resolve(__dirname, "../../report/failure_screenshots");
 if (!fs.existsSync(screenshotDir)) {
@@ -29,6 +30,7 @@ export const mochaHooks = {
   async afterEach(this: Mocha.Context) {
     const testFailed = this.currentTest?.state === "failed";
     const testName = this.currentTest?.title ?? "unknown";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const driver = (global as any).currentDriver;
 
     // ── 1. Screenshot FIRST (before driver is quit) ───────────────────
@@ -58,6 +60,7 @@ export const mochaHooks = {
       try {
         await driver.deleteSession();
       } catch { /* skip */ }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global as any).currentDriver = null;
     }
 

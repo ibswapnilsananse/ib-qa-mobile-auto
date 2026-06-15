@@ -1,4 +1,4 @@
-import { Browser, Element } from "webdriverio";
+import { Browser } from "webdriverio";
 import { Base, Locator } from "../helpers/base";
 
 export class WhereIsMyTrainPage {
