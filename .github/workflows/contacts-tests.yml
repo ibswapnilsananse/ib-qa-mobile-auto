@@ -17,8 +17,8 @@ jobs:
       PLATFORM_VERSION: "12"
       DEVICE_NAME: Pixel_6
       UDID: emulator-5554
-      APP_PACKAGE: com.google.android.contacts
-      APP_ACTIVITY: com.android.contacts.activities.PeopleActivity
+      APP_PACKAGE: com.google.android.dialer
+      APP_ACTIVITY: com.google.android.dialer.extensions.GoogleDialtactsActivity
       APK_FILE_PATH: ""
       FULL_RESET: "false"
       AUTO_LAUNCH_APPIUM_SERVER: "true"
@@ -73,11 +73,6 @@ jobs:
             --device "pixel_6" \
             --force
 
-      - name: Install Appium and UiAutomator2 driver
-        run: |
-          npm install -g appium
-          appium driver install uiautomator2
-
       - name: Run Contacts tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -88,7 +83,11 @@ jobs:
           avd-name: Pixel_6
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npm run test:singleWithMochaAwesome "Contacts App Test Suite"
+          script: |
+            npm install -g appium
+            appium driver install uiautomator2
+            adb shell input keyevent 82
+            npm run test:singleWithMochaAwesome "Contacts App Test Suite"
 
       - name: Upload Mochawesome report
         uses: actions/upload-artifact@v4

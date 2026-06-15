@@ -72,32 +72,6 @@ jobs:
             --device "pixel_6" \
             --force
 
-      - name: Start Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          profile: pixel_6
-          avd-name: Pixel_6
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: echo "Emulator started"
-
-      - name: Wait for emulator to be ready
-        run: |
-          adb wait-for-device
-          adb shell input keyevent 82
-
-      - name: Install Where Is My Train APK
-        if: env.APK_FILE_PATH != ''
-        run: adb install -r ${{ env.APK_FILE_PATH }}
-
-      - name: Install Appium and UiAutomator2 driver
-        run: |
-          npm install -g appium
-          appium driver install uiautomator2
-
       - name: Run Where Is My Train tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -108,7 +82,11 @@ jobs:
           avd-name: Pixel_6
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
+          script: |
+            npm install -g appium
+            appium driver install uiautomator2
+            adb shell input keyevent 82
+            npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
 
       - name: Upload Mochawesome report
         uses: actions/upload-artifact@v4
