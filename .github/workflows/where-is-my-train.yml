@@ -166,17 +166,35 @@ jobs:
           force-avd-creation: false
           emulator-boot-timeout: 900
           script: |
-            rm -rf mochawesome-report xray-report.json xray-execution-info.json
-            npm install -g appium
+            rm -rf mochawesome-report allure-results allure-report xray-report.json xray-execution-info.json
+            npm install -g appium allure-commandline
             appium driver install uiautomator2
             adb shell input keyevent 82
-            npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
+            npm run test:singleWithMulti "Where Is My Train - Test Suite"
 
       - name: Run Where Is My Train tests (remote provider)
         if: env.TEST_PROVIDER != 'local'
         run: |
-          rm -rf mochawesome-report xray-report.json xray-execution-info.json
-          npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
+          rm -rf mochawesome-report allure-results allure-report xray-report.json xray-execution-info.json
+          npm run test:singleWithMulti "Where Is My Train - Test Suite"
+
+      - name: Generate Allure HTML report
+        if: always()
+        run: |
+          if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
+            npx allure generate allure-results --clean -o allure-report
+            echo "✅ Allure report generated at allure-report/"
+          else
+            echo "⚠ No allure-results found, skipping allure generate"
+          fi
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 7
 
       - name: Check mochawesome report exists
         id: check_report
@@ -229,7 +247,7 @@ jobs:
         with:
           name: execution-logs
           path: report/execution-*.log
-          retention-days: 7
+          retention-days: 2
 
       - name: Upload Appium server logs
         uses: actions/upload-artifact@v4
@@ -237,7 +255,7 @@ jobs:
         with:
           name: appium-server-logs
           path: report/appium_server_logs/
-          retention-days: 7
+          retention-days: 2
 
       - name: Generate HTML summary report
         id: gen_report
@@ -261,7 +279,7 @@ jobs:
         with:
           name: ib-qa-test-summary-report
           path: mochawesome-report/ib-qa-test-summary.html
-          retention-days: 7
+          retention-days: 2
 
       - name: Prepare email HTML body
         id: prepare_email
