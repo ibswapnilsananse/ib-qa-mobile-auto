@@ -158,6 +158,7 @@ jobs:
           force-avd-creation: false
           emulator-boot-timeout: 900
           script: |
+            rm -rf mochawesome-report xray-report.json xray-execution-info.json
             npm install -g appium
             appium driver install uiautomator2
             adb shell input keyevent 82
@@ -165,7 +166,9 @@ jobs:
 
       - name: Run Where Is My Train tests (remote provider)
         if: env.TEST_PROVIDER != 'local'
-        run: npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
+        run: |
+          rm -rf mochawesome-report xray-report.json xray-execution-info.json
+          npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
 
       - name: Check mochawesome report exists
         id: check_report
@@ -271,6 +274,7 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 587
+          secure: false
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: "IB-QA Mobile | Where Is My Train | ${{ env.REPORT_TITLE }} — Run #${{ github.run_number }}"
@@ -278,3 +282,4 @@ jobs:
           from: "IB-QA Automation <${{ secrets.GMAIL_USERNAME }}>"
           html_body: ${{ steps.prepare_email.outputs.email_body }}
           attachments: "ib-qa-wimt-results.zip,mochawesome-report/ib-qa-test-summary.html"
+          ignore_cert: true
