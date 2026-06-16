@@ -6,7 +6,8 @@ report/
 mochawesome-report/
 PageSource/
 whereIsMyTrian/
-app/
+app/*.apk
+!app/whereismytrain.apk
 *.log
 .env
 .env.local

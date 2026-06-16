@@ -14,7 +14,7 @@ describe("Where Is My Train - Test Suite", function () {
   });
 
   beforeEach(async function () {
-    driver = await createDriver(false);
+    driver = await createDriver(true);
     trainHelper = new WhereIsMyTrainHelper(driver);
     await trainHelper.verifyHomePageDisplayed();
   });
