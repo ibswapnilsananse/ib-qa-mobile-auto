@@ -184,7 +184,7 @@ jobs:
           if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
             npx allure generate allure-results --clean -o allure-report
             pip install allure-combine --quiet
-            allure-combine allure-report --dest allure-single
+            allure-combine allure-report --dest allure-single --auto-create-folders
             echo "✅ Allure single-page report generated"
           else
             echo "⚠ No allure-results found, skipping allure report"
