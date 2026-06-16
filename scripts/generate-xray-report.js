@@ -29,9 +29,18 @@ function generateXrayReport() {
   // Convert to Xray format
   const xrayTests = [];
 
+  // totalSeen tracks all tests (with or without Xray key) so we stop
+  // traversal once we've consumed exactly stats.tests entries — preventing
+  // ghost tests from prior merged runs embedded deeper in the results tree.
+  let totalSeen = 0;
+  const totalExecuted = mochawesomeData.stats.tests || 0;
+
   function extractTestsFromSuite(suite) {
+    if (totalSeen >= totalExecuted) return;
     if (suite.tests && suite.tests.length > 0) {
-      suite.tests.forEach((test) => {
+      for (const test of suite.tests) {
+        if (totalSeen >= totalExecuted) break;
+        totalSeen++;
         const testKey = extractTestKey(test.title);
         if (testKey) {
           xrayTests.push({
@@ -42,10 +51,13 @@ function generateXrayReport() {
         } else {
           console.warn(`⚠ No Xray test key found in: ${test.title}`);
         }
-      });
+      }
     }
     if (suite.suites && suite.suites.length > 0) {
-      suite.suites.forEach((nestedSuite) => extractTestsFromSuite(nestedSuite));
+      for (const nestedSuite of suite.suites) {
+        if (totalSeen >= totalExecuted) break;
+        extractTestsFromSuite(nestedSuite);
+      }
     }
   }
 
