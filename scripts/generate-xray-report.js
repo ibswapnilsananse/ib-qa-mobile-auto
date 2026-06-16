@@ -1,7 +1,7 @@
 const fs = require("fs");
 require("dotenv").config();
 
-const MOCHAWESOME_REPORT_FILE = "./mochawesome-report/report.json";
+const MOCHAWESOME_REPORT_FILE = "./mochawesome-report/mochawesome.json";
 const XRAY_REPORT_FILE = "./xray-report.json";
 
 function extractTestKey(title) {

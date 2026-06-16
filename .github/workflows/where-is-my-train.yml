@@ -149,17 +149,28 @@ jobs:
         if: env.TEST_PROVIDER != 'local'
         run: npm run test:singleWithMochaAwesome "Where Is My Train - Test Suite"
 
-      - name: Generate Xray report from Mochawesome results
+      - name: Check mochawesome report exists
+        id: check_report
         if: always() && env.JIRA_TEST_EXECUTION_KEY != ''
+        run: |
+          if [ -f "mochawesome-report/mochawesome.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠ mochawesome.json not found, skipping Xray upload"
+          fi
+
+      - name: Generate Xray report from Mochawesome results
+        if: always() && env.JIRA_TEST_EXECUTION_KEY != '' && steps.check_report.outputs.exists == 'true'
         run: npm run xray:generate
 
       - name: Upload results to Jira Xray
-        if: always() && env.JIRA_TEST_EXECUTION_KEY != ''
+        if: always() && env.JIRA_TEST_EXECUTION_KEY != '' && steps.check_report.outputs.exists == 'true'
         run: npm run xray:upload
 
       - name: Upload Xray report JSON
         uses: actions/upload-artifact@v4
-        if: always() && env.JIRA_TEST_EXECUTION_KEY != ''
+        if: always() && env.JIRA_TEST_EXECUTION_KEY != '' && steps.check_report.outputs.exists == 'true'
         with:
           name: xray-report
           path: |
