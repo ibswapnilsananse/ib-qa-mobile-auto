@@ -95,6 +95,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Clean previous test reports
+        run: rm -rf mochawesome-report xray-report.json xray-execution-info.json email-body.html
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
