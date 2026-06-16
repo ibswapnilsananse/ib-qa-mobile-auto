@@ -250,11 +250,7 @@ jobs:
       - name: Prepare email HTML body
         id: prepare_email
         if: always()
-        run: |
-          npm run email:prepare
-          echo "email_body<<EOF" >> $GITHUB_OUTPUT
-          cat email-body.html >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+        run: npm run email:prepare
 
       - name: Create test artifacts zip
         if: always()
@@ -270,16 +266,50 @@ jobs:
 
       - name: Send email notification
         if: always() && env.GMAIL_USERNAME != '' && env.NOTIFICATION_EMAIL != ''
-        uses: dawidd6/action-send-mail@v6
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.GMAIL_USERNAME }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "IB-QA Mobile | Where Is My Train | ${{ env.REPORT_TITLE }} — Run #${{ github.run_number }}"
-          to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: "IB-QA Automation <${{ secrets.GMAIL_USERNAME }}>"
-          html_body: ${{ steps.prepare_email.outputs.email_body }}
-          attachments: "ib-qa-wimt-results.zip,mochawesome-report/ib-qa-test-summary.html"
-          ignore_cert: true
+        shell: pwsh
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASS: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SMTP_TO: ${{ secrets.NOTIFICATION_EMAIL }}
+          RUN_NUMBER: ${{ github.run_number }}
+          REPORT_TITLE: ${{ env.REPORT_TITLE }}
+        run: |
+          $smtpServer   = "smtp.gmail.com"
+          $smtpPort     = 587
+          $smtpUser     = $env:GMAIL_USER
+          $smtpPass     = $env:GMAIL_APP_PASS
+          $smtpFrom     = "IB-QA Automation <$smtpUser>"
+          $smtpTo       = $env:SMTP_TO
+          $subject      = "IB-QA Mobile | Where Is My Train | $($env:REPORT_TITLE) - Run #$($env:RUN_NUMBER)"
+
+          $emailBodyPath = "email-body.html"
+          if (Test-Path $emailBodyPath) {
+            $body = Get-Content -Path $emailBodyPath -Raw
+          } else {
+            $body = "<p>Test run #$($env:RUN_NUMBER) completed. See attached report for details.</p>"
+          }
+
+          try {
+            $smtp = New-Object Net.Mail.SmtpClient($smtpServer, $smtpPort)
+            $smtp.EnableSsl = $true
+            $smtp.Credentials = New-Object System.Net.NetworkCredential($smtpUser, $smtpPass)
+
+            $message = New-Object Net.Mail.MailMessage
+            $message.From = $smtpFrom
+            $smtpTo -split ',' | ForEach-Object { $message.To.Add($_.Trim()) }
+            $message.Subject = $subject
+            $message.Body = $body
+            $message.IsBodyHTML = $true
+
+            foreach ($f in @("ib-qa-wimt-results.zip", "mochawesome-report/ib-qa-test-summary.html")) {
+              if (Test-Path $f) {
+                $message.Attachments.Add((New-Object System.Net.Mail.Attachment($f)))
+              }
+            }
+
+            $smtp.Send($message)
+            Write-Host "✅ Email notification sent successfully."
+          } catch {
+            Write-Host "##[error] Failed to send email: $_"
+            exit 1
+          }
