@@ -37,6 +37,16 @@ on:
         description: "Jira Test Execution key to update (e.g. MYY-10). Leave empty to skip Xray upload."
         required: false
         default: ""
+      report_type:
+        description: "Report type: summary | detailed"
+        required: false
+        default: summary
+        type: choice
+        options: [summary, detailed]
+      report_title:
+        description: "Report title shown in the HTML report and email subject"
+        required: false
+        default: "IB-QA Mobile Automation — Where Is My Train"
 
 jobs:
   android-tests:
@@ -66,6 +76,11 @@ jobs:
       XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
       JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
       JIRA_TEST_EXECUTION_KEY: ${{ inputs.jira_test_execution_key || secrets.JIRA_TEST_EXECUTION_KEY }}
+      GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+      REPORT_TYPE: ${{ inputs.report_type || 'summary' }}
+      REPORT_TITLE: ${{ inputs.report_title || 'IB-QA Mobile Automation — Where Is My Train' }}
 
     steps:
       - name: Checkout repository
@@ -201,3 +216,62 @@ jobs:
           name: appium-server-logs
           path: report/appium_server_logs/
           retention-days: 3
+
+      - name: Generate HTML summary report
+        id: gen_report
+        if: always()
+        run: |
+          if [ -f "mochawesome-report/mochawesome.json" ]; then
+            if [ "${{ env.REPORT_TYPE }}" == "detailed" ]; then
+              npm run report:generate:detailed -- --report-title "${{ env.REPORT_TITLE }}"
+            else
+              npm run report:generate -- --report-title "${{ env.REPORT_TITLE }}"
+            fi
+            echo "report_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠ mochawesome.json not found, skipping HTML report generation"
+            echo "report_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload HTML summary report
+        uses: actions/upload-artifact@v4
+        if: always() && steps.gen_report.outputs.report_exists == 'true'
+        with:
+          name: ib-qa-test-summary-report
+          path: mochawesome-report/ib-qa-test-summary.html
+          retention-days: 7
+
+      - name: Prepare email HTML body
+        id: prepare_email
+        if: always()
+        run: |
+          npm run email:prepare
+          echo "email_body<<EOF" >> $GITHUB_OUTPUT
+          cat email-body.html >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create test artifacts zip
+        if: always()
+        run: |
+          zip -j ib-qa-wimt-results.zip \
+            mochawesome-report/mochawesome.json \
+            mochawesome-report/ib-qa-test-summary.html \
+            xray-report.json \
+            xray-execution-info.json 2>/dev/null || \
+          zip -j ib-qa-wimt-results.zip \
+            mochawesome-report/mochawesome.json 2>/dev/null || \
+          echo "⚠ No result files to zip"
+
+      - name: Send email notification
+        if: always() && env.GMAIL_USERNAME != '' && env.NOTIFICATION_EMAIL != ''
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "IB-QA Mobile | Where Is My Train | ${{ env.REPORT_TITLE }} — Run #${{ github.run_number }}"
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: "IB-QA Automation <${{ secrets.GMAIL_USERNAME }}>"
+          html_body: ${{ steps.prepare_email.outputs.email_body }}
+          attachments: "ib-qa-wimt-results.zip,mochawesome-report/ib-qa-test-summary.html"
