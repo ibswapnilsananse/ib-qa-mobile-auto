@@ -19,7 +19,10 @@
     "test:report": "mocha --require ts-node/register --require src/helpers/hooks.ts --reporter mochawesome --exit src/testsuite/**/*.test.ts",
     "allure:serve": "allure serve allure-results",
     "xray:generate": "node scripts/generate-xray-report.js",
-    "xray:upload": "node scripts/upload-xray-results.js"
+    "xray:upload": "node scripts/upload-xray-results.js",
+    "report:generate": "ts-node scripts/generate-report.ts",
+    "report:generate:detailed": "ts-node scripts/generate-report.ts --detailed",
+    "email:prepare": "ts-node scripts/prepare-email-body.ts"
   },
   "keywords": [
     "appium",
