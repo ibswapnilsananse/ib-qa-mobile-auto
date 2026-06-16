@@ -144,6 +144,14 @@ jobs:
             --device "pixel_6" \
             --force
 
+      - name: Clean previous test reports
+        if: always()
+        run: |
+          echo "🧹 Removing mochawesome-report directory and stale xray files..."
+          rm -rf mochawesome-report
+          rm -f xray-report.json xray-execution-info.json
+          echo "✅ Clean complete. Workspace is fresh for this run."
+
       - name: Run Where Is My Train tests (local emulator)
         if: env.TEST_PROVIDER == 'local'
         uses: reactivecircus/android-emulator-runner@v2
