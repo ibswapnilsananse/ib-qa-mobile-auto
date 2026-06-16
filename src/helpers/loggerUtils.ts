@@ -7,10 +7,10 @@ if (!fs.existsSync(reportDir)) {
   fs.mkdirSync(reportDir, { recursive: true });
 }
 
-const timestamp =
-  new Date().toISOString().replace(/[:.]/g, "-").split("T")[0] +
-  "_" +
-  new Date().toTimeString().split("")[0].replace(/:/g, "-");
+const _now = new Date();
+const _date = _now.toISOString().split("T")[0];
+const _time = _now.toTimeString().split(" ")[0].replace(/:/g, "-");
+const timestamp = `${_date}_${_time}`;
 const logFilename = `execution-${timestamp}.log`;
 
 // In-memory log buffer — flushed to Allure after each test via afterEach

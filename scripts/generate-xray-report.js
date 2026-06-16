@@ -29,24 +29,20 @@ function generateXrayReport() {
   // Convert to Xray format
   const xrayTests = [];
 
-  // totalSeen tracks all tests (with or without Xray key) so we stop
-  // traversal once we've consumed exactly stats.tests entries — preventing
-  // ghost tests from prior merged runs embedded deeper in the results tree.
-  let totalSeen = 0;
-  const totalExecuted = mochawesomeData.stats.tests || 0;
-
   function extractTestsFromSuite(suite) {
-    if (totalSeen >= totalExecuted) return;
     if (suite.tests && suite.tests.length > 0) {
       for (const test of suite.tests) {
-        if (totalSeen >= totalExecuted) break;
-        totalSeen++;
+        // Only include tests that were actually executed in this run.
+        // Ghost tests from prior merged runs have skipped:true and pass/fail both false.
+        if (test.skipped === true || test.isHook === true) continue;
+        if (!test.pass && !test.fail) continue;
+
         const testKey = extractTestKey(test.title);
         if (testKey) {
           xrayTests.push({
             testKey: testKey,
             status: test.pass ? "PASSED" : "FAILED",
-            comment: test.err ? test.err.message : "Test executed successfully",
+            comment: test.err && test.err.message ? test.err.message : "Test executed successfully",
           });
         } else {
           console.warn(`⚠ No Xray test key found in: ${test.title}`);
@@ -54,20 +50,21 @@ function generateXrayReport() {
       }
     }
     if (suite.suites && suite.suites.length > 0) {
-      for (const nestedSuite of suite.suites) {
-        if (totalSeen >= totalExecuted) break;
-        extractTestsFromSuite(nestedSuite);
-      }
+      suite.suites.forEach((nestedSuite) => extractTestsFromSuite(nestedSuite));
     }
   }
 
-  // Extract tests from all suites
+  // Traverse all results — skipped/unexecuted tests are filtered inside extractTestsFromSuite
   if (mochawesomeData.results && mochawesomeData.results.length > 0) {
     mochawesomeData.results.forEach((result) => {
       if (result.suites && result.suites.length > 0) {
         result.suites.forEach((suite) => extractTestsFromSuite(suite));
       }
     });
+  }
+
+  if (xrayTests.length === 0) {
+    console.warn(`⚠ No executed tests with Xray keys found in the report.`);
   }
 
   // Read project key from environment
