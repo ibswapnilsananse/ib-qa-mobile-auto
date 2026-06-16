@@ -88,6 +88,7 @@ function readEnvConfig(): AppiumConfig {
 
 let appiumProcess: ChildProcess | null = null;
 let assignedPort: number | null = null;
+let appiumServerUrl: string | null = null;
 
 function findFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -139,6 +140,12 @@ export async function startAppiumServer(): Promise<string> {
   const host = "http://localhost";
 
   if (config.autoLaunchAppiumServer) {
+    // Reuse already-running server for the session — start only once
+    if (appiumServerUrl && appiumProcess) {
+      logger.info(`Reusing existing Appium server at ${appiumServerUrl}`);
+      return appiumServerUrl;
+    }
+
     const port = await findFreePort();
     assignedPort = port;
     logger.info(`Starting Appium server on port ${port}`);
@@ -158,7 +165,8 @@ export async function startAppiumServer(): Promise<string> {
       const status = await checkAppiumServer(host, port);
       if (status.running) {
         logger.info(`Appium server started successfully at ${status.url}`);
-        return status.url;
+        appiumServerUrl = status.url;
+        return appiumServerUrl;
       }
     }
     throw new Error("Appium server failed to start within timeout");
@@ -170,7 +178,8 @@ export async function startAppiumServer(): Promise<string> {
       throw new Error("Appium server is not started manually. Halting execution.");
     }
     logger.info(`Appium server already running at ${status.url}`);
-    return status.url;
+    appiumServerUrl = status.url;
+    return appiumServerUrl;
   }
 }
 
@@ -180,6 +189,7 @@ export async function stopAppiumServer(): Promise<void> {
     appiumProcess.kill("SIGTERM");
     appiumProcess = null;
     assignedPort = null;
+    appiumServerUrl = null;
   }
 }
 
