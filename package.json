@@ -13,7 +13,7 @@
     "test:single": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --grep",
     "test:multi": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter mocha-multi-reporters --reporter-options configFile=reporter-config.json --exit src/testsuite/**/*.test.ts",
     "test:singleWithMulti": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter mocha-multi-reporters --reporter-options configFile=reporter-config.json --exit --grep",
-    "test:singleWithMochaAwesome": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter mochawesome --exit --grep",
+    "test:singleWithMochaAwesome": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter mochawesome --reporter-options reportDir=mochawesome-report,reportFilename=mochawesome,overwrite=true --exit --grep",
     "test:singleWithAllure": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter allure-mocha --exit --grep",
     "test:allure": "mocha --require ts-node/register --require src/helpers/hooks.ts --timeout 120000 --reporter allure-mocha --exit src/testsuite/**/*.test.ts",
     "test:report": "mocha --require ts-node/register --require src/helpers/hooks.ts --reporter mochawesome --exit src/testsuite/**/*.test.ts",
