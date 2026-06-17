@@ -57,7 +57,8 @@ describe("Where Is My Train - Test Suite", function () {
     const selectedTrainNumber = await trainHelper.selectFirstTrainFromResults();
     const headingText = await trainHelper.getTrainStatusHeading();
     expect(headingText).to.include(selectedTrainNumber);
-    expect(headingText).to.include("-");
+    // Deliberate failure for demo
+    expect("DEMO_FAIL").to.equal("PASS", "Intentional failure for demo purposes");
   });
 
   it("TC06: Verify recent search appears on the Home screen after searching by train number [MYY-7]", async function () {
