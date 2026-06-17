@@ -1,5 +1,5 @@
 {
-  "reporterEnabled": "allure-mocha, mochawesome, @enedis-oss/mocha-xray-reporter",
+  "reporterEnabled": "allure-mocha, mochawesome",
   "allureMochaReporterOptions": {
     "resultsDir": "allure-results"
   },
@@ -9,8 +9,5 @@
     "overwrite": true,
     "html": true,
     "json": true
-  },
-  "enedisOssMochaXrayReporterOptions": {
-    "outputFile": "xray-report.json"
   }
 }
